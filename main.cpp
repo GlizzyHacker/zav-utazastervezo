@@ -6,6 +6,7 @@
 #include "graph.h"
 #include "agent.h"
 #include "time.h"
+#include "memtrace.h"
 
 #ifndef CPORTA
 
@@ -16,7 +17,7 @@ class MissingParameter : public std::exception {
 	}
 };
 
-bool isArgument(char* input, char arg, const char* argument) {
+bool isArgument(const char* input,const char arg, const char* argument) {
 	if (input[0] == '-') {
 		if (input[1] == '-') {
 			return strcmp(input + 2, argument) == 0;
