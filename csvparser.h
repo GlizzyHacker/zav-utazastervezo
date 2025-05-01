@@ -1,5 +1,6 @@
 #include <exception>
 #include <fstream>
+#include "array.hpp"
 
 #ifndef CSVPARSER
 #define CSVPARSER
@@ -12,25 +13,23 @@ class FormatInvalid : public std::exception {
 };
 
 class CSVLine {
-	char** columns;
-	int numColumns;
+	Array<char*> columns;
 
 	void createColumn(const char* start, size_t len);
 public:
 	CSVLine();
 	CSVLine(const char line[]);
-	char** getColumns() const;
-	int getNumColumns() const;
+	Array<char*> getColumns() const;
 	bool isEmpty() const;
 
 	~CSVLine();
 };
 
 class CSVParser {
-	CSVLine* lines;
-	int numLines;
+	Array<CSVLine> lines;
+	std::ifstream file;
 
-	char* readLine(std::ifstream);
+	char* readLine();
 public:
 	CSVParser(const char* filePath);
 

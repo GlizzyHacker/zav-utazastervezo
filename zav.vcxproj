@@ -135,6 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="agent.h" />
+    <ClInclude Include="array.hpp" />
     <ClInclude Include="csvgraph.h" />
     <ClInclude Include="csvparser.h" />
     <ClInclude Include="graph.h" />

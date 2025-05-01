@@ -53,5 +53,8 @@
     <ClInclude Include="time.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="array.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

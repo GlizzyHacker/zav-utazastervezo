@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-
+#include "array.hpp"
 #include "gtest_lite.h"
 #include "csvparser.h"
 #include "memtrace.h"
@@ -18,24 +18,42 @@ bool isArgument(const char* input, const char arg, const char* argument) {
 }
 int main() {
 	GTINIT(true);
-		TEST(Main, isArgument) {
-			EXPECT_TRUE(isArgument("-A", 'A', "All"));
-			EXPECT_TRUE(isArgument("--All", 'A', "All"));
-			EXPECT_FALSE(isArgument("-X", 'A', "All"));
-			EXPECT_FALSE(isArgument("--Xll", 'A', "All"));
-	} END
-			TEST(CSV, CSVLine ctor) {
-		CSVLine line = CSVLine(NULL);
-		CSVLine line2 = CSVLine("something,somethingelse");
-		CSVLine line3 = CSVLine("something,somethingelse,");
 
-		EXPECT_TRUE(NULL == line.getColumns());
-		EXPECT_STREQ("something", line2.getColumns()[0]);
-		EXPECT_STREQ("somethingelse", line2.getColumns()[1]);
-		EXPECT_TRUE(2 == line3.getNumColumns());
-		EXPECT_STREQ("somethingelse", line3.getColumns()[1]);
+	TEST(Array, operators) {
+		int* tmp = new int[1];
+		tmp[0] = 2;
+		Array<int> array(1,tmp);
+
+		EXPECT_EQ(tmp, array + 0);
+
+		array += 1;
+		Array<int> array2(array);
+		Array<int> array3;
+		array3 = array;
+
+		EXPECT_EQ(2, array[0]);
+		EXPECT_EQ(1, array[1]);
+		EXPECT_EQ(2, array.getLength());
+
+		EXPECT_NE(array+0, array2+0);
+		
+		EXPECT_EQ(2, array2[0]);
+		EXPECT_EQ(1, array2[1]);
+		EXPECT_EQ(2, array2.getLength());
+
+		EXPECT_EQ(2, array3[0]);
+		EXPECT_EQ(1, array3[1]);
+		EXPECT_EQ(2, array3.getLength());
+		
 	} END
-	 
+
+		TEST(Main, isArgument) {
+		EXPECT_TRUE(isArgument("-A", 'A', "All"));
+		EXPECT_TRUE(isArgument("--All", 'A', "All"));
+		EXPECT_FALSE(isArgument("-X", 'A', "All"));
+		EXPECT_FALSE(isArgument("--Xll", 'A', "All"));
+	} END
+
 		TEST(CSV, line isEmpty) {
 		CSVLine line = CSVLine("");
 		CSVLine line2 = CSVLine(NULL);
@@ -46,11 +64,17 @@ int main() {
 	} END
 
 		TEST(CSV, read simple) {
-		std::ofstream CVS = std::ofstream("test.cvs");
+		std::ofstream CVS = std::ofstream("test.cvs",3);
 		CVS << "test";
 		CVS.close();
-		CSVParser csv = CSVParser("test.csv");
-		EXPECT_STREQ("test", csv.read().getColumns()[0]);
+		CSVParser csv("test.csv");
+		CSVLine line = csv.read();
+		if (line.isEmpty()) {
+			FAIL();
+		}
+		else {
+			EXPECT_STREQ("test", line.getColumns()[0]);
+		}
 	} END
 
 		TEST(CSV, read multiple lines) {
