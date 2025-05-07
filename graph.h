@@ -1,4 +1,5 @@
 #include "time.h"
+#include "array.hpp"
 
 #ifndef GRAPH
 #define GRAPH
@@ -13,49 +14,49 @@ class NotFound : public std::exception {
 class Edge;
 
 class Node {
-	Edge* edges;
-	int numEdges;
-	char* name;
+	Array<Edge> edges;
+	const char* name;
 public:
-	Node(Edge* edges, int numEdges, char* name);
-	char* getName() const;
-	Edge* getEdges() const;
-	int getNumEdges() const;
+	Node(Array<Edge> edges, const char* name);
+	Node();
+	const char* getName() const;
+	Array<Edge> getEdges() const;
 };
 
 class Edge {
+protected:
 	Node* from;
 	Node* to;
 	int weight;
 	Time startTime;
-	char* name;
+	const char* name;
 public:
-	Edge(Node* from, Node* to, int weight, Time startTime, char* name);
-	char* getName() const;
+	Edge(Node* from, Node* to, int weight, Time startTime, const char* name);
+	Edge();
+	const char* getName() const;
 	int getWeight(Time currentTime) const;
 	Node* getToNode() const;
 
 };
 
 class Graph {
-private:
-	Node* nodes;
-	int numNodes;
+	Array<Node> nodes;
 public:
-	Graph(Node* nodes, int numNodes);
-	Node* getNodes() const;
-	int getNumNodes() const;
-	Node* getNode(char* name) const;
+	Graph();
+
+	Graph(Array<Node> nodes);
+
+	Array<Node> getNodes() const;
+
+	Node* getNode(const char* name) const;
 };
 
 class Route {
-	Edge* edges;
-	int numEdges;
+	Array<Edge> edges;
 public:
-	Route(Edge* edges, int numEdges);
-	Node* getEdges() const;
-	int getNumEdges() const;
-	int getTotalWeight() const;
+	Route(Array<Edge> edges);
+	Array<Edge> getEdges() const;
+	int getTotalWeight(Time startTime) const;
 	Route* next;
 };
 

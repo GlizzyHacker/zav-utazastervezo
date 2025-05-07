@@ -13,21 +13,28 @@ class FormatInvalid : public std::exception {
 };
 
 class CSVLine {
-	Array<char*> columns;
+	Array<Array<char>> columns;
 
 	void createColumn(const char* start, size_t len);
 public:
 	CSVLine();
+	
 	CSVLine(const char line[]);
-	Array<char*> getColumns() const;
+	
+	Array<Array<char>> getColumns() const;
+	
 	bool isEmpty() const;
 
-	~CSVLine();
+	CSVLine& operator=(const CSVLine&);
 };
 
 class CSVParser {
 	Array<CSVLine> lines;
-	std::ifstream file;
+	
+	std::fstream file;
+	
+	//KELL HOGY TOBB FAJLT LEHESSEN KOMBINALNI
+	CSVParser* next;
 
 	char* readLine();
 public:
@@ -37,7 +44,8 @@ public:
 
 	CSVLine read();
 
-	CSVParser operator+(CSVParser);
+	//Jobb oldali parsert nem szabad hasznalni ezutan
+	void operator+=(CSVParser&);
 
 	~CSVParser();
 };

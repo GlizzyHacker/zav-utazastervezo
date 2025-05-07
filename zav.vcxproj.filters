@@ -27,6 +27,15 @@
     <ClCompile Include="csvparser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="csvgraph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="graph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="time.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="graph.h">
