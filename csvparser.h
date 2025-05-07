@@ -6,10 +6,11 @@
 #define CSVPARSER
 
 class FormatInvalid : public std::exception {
-	virtual const char* what() const throw()
-	{
-		return "A fájl rosszul van formázva";
-	}
+	const char* file;
+	int line;
+	int character;
+public:
+	FormatInvalid(const char file[] = NULL, int line = -1, int character = -1);
 };
 
 class CSVLine {
@@ -26,7 +27,13 @@ public:
 	bool isEmpty() const;
 
 	CSVLine& operator=(const CSVLine&);
+
+	void operator+=(const char*);
+
+	void operator+=(int);
 };
+
+std::ostream& operator<<(std::ostream& os, const CSVLine& line);
 
 class CSVParser {
 	Array<CSVLine> lines;

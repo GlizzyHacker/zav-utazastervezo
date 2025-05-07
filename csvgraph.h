@@ -8,18 +8,20 @@ class CSVNode;
 
 class CSVEdge : public Edge {
 public:
-	CSVEdge operator+=(CSVNode node);
+	void operator+=(CSVNode& node);
 };
 
 class CSVNode : public Node {
+	Array<Edge*> edges;
 public:
-	CSVNode operator+=(CSVEdge edge);
+	void operator+=(CSVEdge& edge);
 };
 
 class CSVGraph : public Graph {
+	Array<Node*> nodes;
 public:
 	CSVGraph(CSVParser csv);
-	CSVGraph operator+=(CSVNode node);
+	void operator+=(CSVNode& node);
 };
 
 CSVLine writeRoute(Route route);

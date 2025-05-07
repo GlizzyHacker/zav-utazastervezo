@@ -7,7 +7,7 @@
 class NotFound : public std::exception {
 	virtual const char* what() const throw()
 	{
-		return "Nem létezik ilyen állomás";
+		return "Nem létezik ilyen";
 	}
 };
 
@@ -19,8 +19,8 @@ class Node {
 public:
 	Node(Array<Edge> edges, const char* name);
 	Node();
-	const char* getName() const;
-	Array<Edge> getEdges() const;
+	virtual const char* getName() const;
+	virtual Array<Edge> getEdges() const;
 };
 
 class Edge {
@@ -34,7 +34,12 @@ public:
 	Edge(Node* from, Node* to, int weight, Time startTime, const char* name);
 	Edge();
 	const char* getName() const;
+
 	int getWeight(Time currentTime) const;
+	int getWeight() const;
+	
+	Time getStartTime();
+
 	Node* getToNode() const;
 
 };
@@ -46,18 +51,17 @@ public:
 
 	Graph(Array<Node> nodes);
 
-	Array<Node> getNodes() const;
+	virtual Array<Node> getNodes() const;
 
-	Node* getNode(const char* name) const;
+	virtual Node* getNode(const char* name) const;
 };
 
 class Route {
 	Array<Edge> edges;
 public:
 	Route(Array<Edge> edges);
-	Array<Edge> getEdges() const;
-	int getTotalWeight(Time startTime) const;
-	Route* next;
+	virtual Array<Edge> getEdges() const;
+	virtual int getTotalWeight(Time startTime) const;
 };
 
 #endif

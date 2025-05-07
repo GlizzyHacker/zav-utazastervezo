@@ -11,7 +11,7 @@ class Array {
 	size_t length;
 	size_t capacity;
 
-	void fill(T* arr, size_t len) {
+	void fill(const T* arr, size_t len) {
 		for (size_t i = 0; i < len; i++)
 		{
 			array[i] = arr[i];
@@ -20,7 +20,9 @@ class Array {
 public:
 	Array() : array(nullptr), length(0), capacity(0) {}
 
-	Array(size_t length, T* array = nullptr) : array(array == nullptr ? new T[length] : array), length(length), capacity(length) {}
+	Array(size_t length, const T* arr = nullptr) : array(new T[length]), length(length), capacity(length) {
+		fill(arr, length);
+	}
 
 	Array(const Array& other, size_t cap = 0) : length(other.length), capacity((cap > other.length) ? cap : other.length) {
 		array = new T[capacity];

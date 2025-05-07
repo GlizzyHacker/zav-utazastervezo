@@ -1,16 +1,17 @@
 #include <cstring>
 #include <ostream>
 #include <fstream>
-#include <string>
+#include <cstring>
 #include "csvparser.h"
 #include "memtrace.h"
 
+FormatInvalid::FormatInvalid(const char file[], int line, int character1) : file(file), line(line), character(character) {}
+
 //HOZZAAD EGY OSZLOPOT A TOMB VEGERE AZT FELTETELEZI VAN HELY
 void CSVLine::createColumn(const char* start, size_t len) {
-	char* newPtr = new char[len + 1];
-	newPtr[len] = 0;
-	strncpy(newPtr, start, len);
-	columns += Array<char>(len + 1, newPtr);
+	Array<char> newArr(len, start);
+	newArr += 0;
+	columns += newArr;
 }
 
 CSVLine::CSVLine() {}
@@ -48,6 +49,30 @@ Array<Array<char>> CSVLine::getColumns() const {
 CSVLine& CSVLine::operator=(const CSVLine& other) {
 	columns = Array<Array<char>>(other.getColumns());
 	return *this;
+}
+
+void CSVLine::operator+=(const char* str) {
+	columns += Array<char>(strlen(str), str);
+}
+
+void CSVLine::operator+=(int i) {
+	//A SZAMJEGYEK SZAMA log10 i
+	char* num = new char[ceil(log10(i))];
+	
+	operator+=(num);
+
+	delete[] num;
+}
+
+std::ostream& operator<<(std::ostream& os, const CSVLine& line) {
+	for (size_t i = 0; i < line.getColumns().getLength(); i++)
+	{
+		if (i != 0) {
+			os << ",";
+		}
+		os << (line.getColumns()[i] + 0);
+	}
+	return os;
 }
 
 //CSVParser
@@ -99,14 +124,7 @@ CSVLine CSVParser::read() {
 }
 
 void CSVParser::write(CSVLine line) {
-	for (size_t i = 0; i < line.getColumns().getLength(); i++)
-	{
-		if (i != 0) {
-			file << ",";
-		}
-		file << (line.getColumns()[i] + 0);
-	}
-	file << std::endl;
+	file << line << std::endl;
 }
 
 //Nem a leghatekonyabb megoldas de mukodik

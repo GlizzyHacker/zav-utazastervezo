@@ -21,6 +21,14 @@ const char* Edge::getName() const {
 	return name;
 }
 
+Time Edge::getStartTime() {
+	return startTime;
+}
+
+int Edge::getWeight() const {
+	return weight;
+}
+
 int Edge::getWeight(Time currentTime) const {
 	return weight + (startTime-currentTime);
 }
