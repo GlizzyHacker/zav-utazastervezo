@@ -36,7 +36,7 @@ int Time::operator-(const Time& other) const {
 	int otherMinutes = (other.day * 24 + other.hour) * 60 + other.minute;
 	//HA A JOBB OLDALI OPERATOR KÉSÖBB VAN MINT A BAL OLDALI AKKOR A KOVETKEZO NAPRA SZAMOLJA KI
 	if (otherMinutes > minutes) {
-		return (3600 - minutes + otherMinutes);
+		minutes += 1440*(other.day + 1);
 	}
 	return minutes - otherMinutes;
 }
