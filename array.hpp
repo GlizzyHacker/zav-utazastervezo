@@ -33,6 +33,10 @@ public:
 		return length;
 	}
 
+	T last() const {
+		return operator[](length-1);
+	}
+
 	Array& operator=(const Array& other) {
 		length = other.length;
 		capacity = other.length;
@@ -64,7 +68,7 @@ public:
 				fill(tmp, length);
 			}
 			delete[] tmp;
-		}		
+		}
 		array[length] = element;
 		length++;
 	}
