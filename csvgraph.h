@@ -8,21 +8,26 @@ class CSVNode;
 
 class CSVEdge : public Edge {
 public:
+	CSVEdge(int weight, Time startTime, const char* name);
+
 	void operator+=(CSVNode& node);
 };
 
 class CSVNode : public Node {
-	Array<Edge*> edges;
 public:
+	CSVNode(const char* name);
+
 	void operator+=(CSVEdge& edge);
 };
 
 class CSVGraph : public Graph {
-	Array<Node*> nodes;
 public:
-	CSVGraph(CSVParser csv);
+	CSVGraph(CSVParser& csv);
+
 	void operator+=(CSVNode& node);
+
+	~CSVGraph();
 };
 
-CSVLine writeRoute(Route route);
+CSVLine writeRoute(Route& route);
 #endif
