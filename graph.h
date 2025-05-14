@@ -4,64 +4,81 @@
 #ifndef GRAPH
 #define GRAPH
 
-class NotFound : public std::exception {
-	virtual const char* what() const throw()
-	{
-		return "Nem létezik ilyen";
-	}
-};
+class NotFound : public std::exception {};
 
 class Edge;
 
 class Node {
-	Array<Edge> edges;
-	const char* name;
+protected:
+	Array<Edge*> edges;
+	
+	char* name;
 public:
-	Node(Array<Edge> edges, const char* name);
+	Node(Array<Edge*> edges, const char* name);
+	
 	Node();
-	virtual const char* getName() const;
-	virtual Array<Edge> getEdges() const;
+	
+	const char* getName() const;
+	
+	Array<Edge*> getEdges() const;
+
+	Node& operator=(const Node&);
+
+	virtual ~Node();
 };
 
 class Edge {
 protected:
 	Node* from;
+	
 	Node* to;
+	
 	int weight;
+
 	Time startTime;
-	const char* name;
+	
+	char* name;
 public:
 	Edge(Node* from, Node* to, int weight, Time startTime, const char* name);
+
 	Edge();
+	
 	const char* getName() const;
 
 	int getWeight(Time currentTime) const;
 	int getWeight() const;
 	
-	Time getStartTime();
+	Time getStartTime() const;
 
 	Node* getToNode() const;
 
+	Edge& operator=(const Edge&);
+
+	virtual ~Edge();
 };
 
 class Graph {
-	Array<Node> nodes;
+protected:
+	Array<Node*> nodes;
 public:
 	Graph();
 
-	Graph(Array<Node> nodes);
+	Graph(Array<Node*> nodes);
 
-	virtual Array<Node> getNodes() const;
+	Array<Node*> getNodes() const;
 
-	virtual Node* getNode(const char* name) const;
+	Node* getNode(const char* name) const;
 };
 
 class Route {
-	Array<Edge> edges;
+protected:
+	Array<Edge*> edges;
 public:
-	Route(Array<Edge> edges);
-	virtual Array<Edge> getEdges() const;
-	virtual int getTotalWeight(Time startTime) const;
+	Route(Array<Edge*> edges);
+
+	Array<Edge*> getEdges() const;
+	
+	int getTotalWeight(Time startTime) const;
 };
 
 #endif
