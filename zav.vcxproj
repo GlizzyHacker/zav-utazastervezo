@@ -102,7 +102,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;CPORTA;MEMTRACE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;TESTS;MEMTRACE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
@@ -128,11 +128,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="agent.cpp" />
     <ClCompile Include="csvgraph.cpp" />
     <ClCompile Include="csvparser.cpp" />
     <ClCompile Include="graph.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memtrace.cpp" />
+    <ClCompile Include="pathfinder.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="time.cpp" />
   </ItemGroup>
@@ -143,6 +145,7 @@
     <ClInclude Include="csvparser.h" />
     <ClInclude Include="graph.h" />
     <ClInclude Include="gtest_lite.h" />
+    <ClInclude Include="log.h" />
     <ClInclude Include="memtrace.h" />
     <ClInclude Include="pathfinder.h" />
     <ClInclude Include="time.h" />
