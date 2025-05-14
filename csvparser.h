@@ -14,13 +14,15 @@ public:
 };
 
 class CSVLine {
+	Array<char> trim(const Array<char>&);
+
 	Array<Array<char>> columns;
 
 	void createColumn(const char* start, size_t len);
 public:
 	CSVLine();
 	
-	CSVLine(const char line[]);
+	CSVLine(const char line[], char separator = ',');
 	
 	Array<Array<char>> getColumns() const;
 	
@@ -38,6 +40,8 @@ std::ostream& operator<<(std::ostream& os, const CSVLine& line);
 class CSVParser {
 	Array<CSVLine> lines;
 	
+	char* path;
+
 	std::fstream file;
 	
 	//KELL HOGY TOBB FAJLT LEHESSEN KOMBINALNI
@@ -50,6 +54,8 @@ public:
 	void write(CSVLine);
 
 	CSVLine read();
+
+	char* getFileName() const;
 
 	//Jobb oldali parsert nem szabad hasznalni ezutan
 	void operator+=(CSVParser&);

@@ -1,15 +1,29 @@
-#include <cstring>
+Ôªø#include <cstring>
 #include <ostream>
 #include <fstream>
 #include <cstring>
 #include "csvparser.h"
 #include "memtrace.h"
 
-FormatInvalid::FormatInvalid(const char file[], int line, int character1) : file(file), line(line), character(character) {}
+FormatInvalid::FormatInvalid(const char file[], int line, int character) : file(file), line(line), character(character) {}
+
+Array<char> CSVLine::trim(const Array<char>& charArray) {
+	char* begin = charArray + 0;
+	char* end = charArray + (charArray.getLength() - 1);
+	while (begin != end && isspace(*begin)) {
+		begin++;
+	}
+	while (end != charArray + 0 && isspace(*end)) {
+		end--;
+	}
+	//AZ INKREMENT M≈∞VELETEK MIATT ROSSZ HELYEN VANNAK A POINTEREK
+	return Array<char>(end - begin + 1, begin);
+
+}
 
 //HOZZAAD EGY OSZLOPOT A TOMB VEGERE AZT FELTETELEZI VAN HELY
 void CSVLine::createColumn(const char* start, size_t len) {
-	Array<char> newArr(len, start);
+	Array<char> newArr = trim(Array<char>(len, start));
 	newArr += 0;
 	columns += newArr;
 }
@@ -17,18 +31,18 @@ void CSVLine::createColumn(const char* start, size_t len) {
 CSVLine::CSVLine() {}
 
 //TODO: SUPPORT QUOTES
-CSVLine::CSVLine(const char line[]) {
+CSVLine::CSVLine(const char line[], char separator) {
 	if (line == NULL) {
 		return;
 	}
 
 	const char* prevSeparator = line - 1;
-	const char* nextSeparator = strchr(line, ',');
+	const char* nextSeparator = strchr(line, separator);
 	while (nextSeparator != NULL) {
 		size_t lenColumn = nextSeparator - prevSeparator - 1;
 		createColumn(prevSeparator + 1, lenColumn);
 		prevSeparator = nextSeparator;
-		nextSeparator = strchr(nextSeparator + 1, ',');
+		nextSeparator = strchr(nextSeparator + 1, separator);
 	}
 	if (prevSeparator[1] == 0) {
 		return;
@@ -47,6 +61,9 @@ Array<Array<char>> CSVLine::getColumns() const {
 }
 
 CSVLine& CSVLine::operator=(const CSVLine& other) {
+	if (&other == this) {
+		return *this;
+	}
 	columns = Array<Array<char>>(other.getColumns());
 	return *this;
 }
@@ -56,9 +73,9 @@ void CSVLine::operator+=(const char* str) {
 }
 
 void CSVLine::operator+=(int i) {
-	//A SZAMJEGYEK SZAMA log10 i
+	//A SZAMJEGYEK SZAMA l()10 i
 	char* num = new char[ceil(log10(i))];
-	
+
 	operator+=(num);
 
 	delete[] num;
@@ -82,7 +99,7 @@ char* CSVParser::readLine() {
 	size_t limit = 0;
 	size_t len = 0;
 	Array<char> lineArray = Array<char>();
-	
+
 	if (file.eof() && next != NULL) {
 		return next->readLine();
 	}
@@ -100,11 +117,13 @@ char* CSVParser::readLine() {
 }
 
 CSVParser::CSVParser(const char* filePath) : next(NULL) {
+	path = new char[strlen(filePath) + 1];
+	strcpy(path, filePath);
 
 	file = std::fstream(filePath, std::ios::in | std::ios::out);
 
 	if (!file) {
-		//ha nem lÈtezik a f·jl lÈtrehozza
+		//ha nem l√©tezik a f√°jl l√©trehozza
 		file.open(filePath, std::ios::out);
 		file.close();
 		//ujraprobalkozas
@@ -127,6 +146,13 @@ void CSVParser::write(CSVLine line) {
 	file << line << std::endl;
 }
 
+char* CSVParser::getFileName() const {
+	if (file.eof() && next != NULL) {
+		return next->getFileName();
+	}
+	return path;
+}
+
 //Nem a leghatekonyabb megoldas de mukodik
 void CSVParser::operator+=(CSVParser& other) {
 	if (next == NULL) {
@@ -138,5 +164,6 @@ void CSVParser::operator+=(CSVParser& other) {
 }
 
 CSVParser::~CSVParser() {
-		file.close();
+	delete[] path;
+	file.close();
 }

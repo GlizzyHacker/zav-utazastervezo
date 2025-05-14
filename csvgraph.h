@@ -21,6 +21,7 @@ public:
 };
 
 class CSVGraph : public Graph {
+
 public:
 	CSVGraph(CSVParser& csv);
 
@@ -30,4 +31,7 @@ public:
 };
 
 CSVLine writeRoute(Route& route);
+
+//CRON
+Array<Time> parseTime(const char* timeString);
 #endif

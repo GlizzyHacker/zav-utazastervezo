@@ -21,7 +21,9 @@ public:
 	Array() : array(nullptr), length(0), capacity(0) {}
 
 	Array(size_t length, const T* arr = nullptr) : array(new T[length]), length(length), capacity(length) {
-		fill(arr, length);
+		if (arr != nullptr) {
+			fill(arr, length);
+		}
 	}
 
 	Array(const Array& other, size_t cap = 0) : length(other.length), capacity((cap > other.length) ? cap : other.length) {
