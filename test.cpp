@@ -4,12 +4,72 @@
 
 #include "array.hpp"
 #include "csvparser.h"
+#include "csvgraph.h"
 #include "memtrace.h"
 #include "gtest_lite.h"
 #include "time.h"
 #include "graph.h"
+#include "agent.h"
 
 #ifdef CPORTA
+#define TESTS
+#endif
+
+#ifdef TESTS
+
+bool operator==(const Time& time1, const Time& time2) {
+	return time1 - time2 == 0;
+}
+bool operator!=(const Time& time1, const Time& time2) {
+	return time1 - time2 != 0;
+}
+
+bool operator==(const Edge& edge1, const Edge& edge2) {
+	EXPECT_EQ(edge1.getName(), edge2.getName());
+
+	EXPECT_EQ(edge1.getToNode()->getName(), edge2.getToNode()->getName());
+
+	EXPECT_EQ(edge1.getStartTime(), edge2.getStartTime());
+
+	EXPECT_EQ(edge1.getWeight(Time(0, 0)), edge2.getWeight(Time(0, 0)));
+
+	return true;
+}
+
+bool operator==(const Route& route1, const Route& route2) {
+	try
+	{
+		for (size_t i = 0; i < route1.getEdges().getLength(); i++)
+		{
+			*route1.getEdges()[i] == *route2.getEdges()[i];
+		}
+	}
+	catch (const std::out_of_range&)
+	{
+		FAIL() << "Route too short";
+	}
+	return true;
+}
+
+bool operator==(const Graph& graph1, const Graph& graph2) {
+	try
+	{
+		for (size_t i = 0; i < graph1.getNodes().getLength(); i++)
+		{
+			EXPECT_STREQ(graph1.getNodes()[i]->getName(), graph2.getNodes()[i]->getName()) << i << ". node";
+			for (size_t j = 0; j < graph1.getNodes()[i]->getEdges().getLength(); j++)
+			{
+				std::cout << i << ". node " << j << ". edge" << std::endl;
+				*graph1.getNodes()[i]->getEdges()[j] == *graph2.getNodes()[i]->getEdges()[j];
+			}
+		}
+	}
+	catch (const std::out_of_range&)
+	{
+		FAIL() << "Graph too short";
+	}
+	return true;
+}
 
 bool isArgument(const char* input, const char arg, const char* argument) {
 	if (input[0] == '-') {
@@ -67,7 +127,7 @@ int main() {
 		t1 += 70;
 		t2 -= 80;
 
-		EXPECT_EQ(1440-119, dif1);
+		EXPECT_EQ(1440 - 119, dif1);
 		EXPECT_EQ(119, dif2);
 		std::stringstream str1, str2;
 		str1 << t1;
@@ -94,28 +154,34 @@ int main() {
 	} ENDM
 
 		TEST(Graph, find node) {
-		Array<Node> nodes;
-		nodes += Node(Array<Edge>(), "name1");
-		nodes += Node(Array<Edge>(), "name2");
-		nodes += Node(Array<Edge>(), "name3");
+		Node node1(Array<Edge*>(), "name1");
+		Node node2(Array<Edge*>(), "name2");
+		Node node3(Array<Edge*>(), "name3");
+		Array<Node*> nodes;
+		nodes += &node1;
+		nodes += &node2;
+		nodes += &node3;
 		Graph graph(nodes);
 
-		Node* node1 = graph.getNode("name1");
+		Node* node = graph.getNode("name1");
 
-		EXPECT_EQ("name1", node1->getName());
+		EXPECT_STREQ("name1", node->getName());
 		EXPECT_THROW(graph.getNode("name4"), NotFound);
 
 	} ENDM
 
 		TEST(Graph, route weight) {
-		Node node1(Array<Edge>(), "name1");
-		Node node2(Array<Edge>(), "name2");
-		Node node3(Array<Edge>(), "name3");
-		Node node4(Array<Edge>(), "name4");
-		Array<Edge> edges;
-		edges += Edge(&node1, &node2, 10, Time(10, 0), "name1");
-		edges += Edge(&node2, &node3, 20, Time(12, 40), "name2");
-		edges += Edge(&node3, &node4, 100, Time(9, 0), "name3");
+		Node node1(Array<Edge*>(), "name1");
+		Node node2(Array<Edge*>(), "name2");
+		Node node3(Array<Edge*>(), "name3");
+		Node node4(Array<Edge*>(), "name4");
+		Edge edge1 = Edge(&node1, &node2, 10, Time(10, 0), "name1");
+		Edge edge2 = Edge(&node2, &node3, 20, Time(12, 40), "name2");
+		Edge edge3 = Edge(&node3, &node4, 100, Time(9, 0), "name3");
+		Array<Edge*> edges;
+		edges += &edge1;
+		edges += &edge2;
+		edges += &edge3;
 		Route route(edges);
 
 		int weight = route.getTotalWeight(Time(9, 50));
@@ -136,7 +202,7 @@ int main() {
 
 		TEST(CSV, read simple) {
 		std::ofstream CSV("testr.csv");
-		CSV << "test";
+		CSV << "test, test2 ";
 		CSV.close();
 		CSVParser csv("testr.csv");
 
@@ -147,6 +213,7 @@ int main() {
 		}
 		else {
 			EXPECT_STREQ("test", line.getColumns()[0] + 0);
+			EXPECT_STREQ("test2", line.getColumns()[1] + 0);
 		}
 	} ENDM
 
@@ -232,25 +299,161 @@ int main() {
 	} ENDM
 
 		TEST(Node from csv, edge addition) {
+		CSVNode node("node1");
+		CSVEdge edge(10, Time(12, 12), "edge1");
+
+		node += edge;
+
+		EXPECT_EQ(&edge, node.getEdges()[0]);
 	} ENDM
 
 		TEST(Edge from csv, node addition) {
+		CSVNode node1("node1");
+		CSVEdge edge(10, Time(12, 12), "edge1");
+		CSVNode node2("node1");
+
+		node1 += edge;
+		edge += node2;
+
+		EXPECT_EQ(&node2, edge.getToNode());
 	} ENDM
 
-		TEST(Graph from csv, simple graph) {
+		TEST(Graph from csv, cron format) {
+
+	} ENDM
+
+		Node node1;
+	Node node2;
+	Node node3;
+	Edge edge1 = Edge(&node1, &node2, 10, Time(10, 0), "edge");
+	Edge edge2 = Edge(&node2, &node3, 20, Time(10, 10), "edge");
+	Array<Edge*> edges1;
+	edges1 += &edge1;
+	Array<Edge*> edges2;
+	edges2 += &edge2;
+	node1 = Node(Array<Edge*>(edges1), "name1");
+	node2 = Node(Array<Edge*>(edges2), "name2");
+	node3 = Node(Array<Edge*>(), "name3");
+	Array<Node*> nodes;
+	nodes += &node1;
+	nodes += &node2;
+	nodes += &node3;
+	Graph simpleTestGraph(nodes);
+
+	Array<Edge*> edges;
+	edges += &edge1;
+	edges += &edge2;
+	Route SimpleTestRoute(edges);
+
+	TEST(Graph from csv, simple graph) {
+		std::ofstream CSV("testgs.csv");
+		CSV << "edge,10 0" << std::endl;
+		CSV << "0,name1" << std::endl;
+		CSV << "10,name2" << std::endl;
+		CSV << "30,name3" << std::endl;
+		CSV.close();
+		CSVParser csv("testgs.csv");
+
+		CSVGraph graph(csv);
+
+		simpleTestGraph == graph;
 	} ENDM
 
 		TEST(Graph from csv, complex graph) {
+		std::ofstream CSV("testgc.csv");
+		CSV << "Test1,12 12" << std::endl;
+		CSV << "0" << std::endl;
+		CSV.close();
+		CSVParser csv("testgi.csv");
+
+		EXPECT_THROW(CSVGraph graph(csv), FormatInvalid);
 	} ENDM
 
 		TEST(Graph from csv, incorrect format) {
+		std::ofstream CSV1("testgi1.csv");
+		CSV1 << "Test1,12 12" << std::endl;
+		CSV1 << "a, a" << std::endl;
+		CSV1.close();
+		std::ofstream CSV2("testgi2.csv");
+		CSV2 << "Test1,12 12" << std::endl;
+		CSV2 << "0" << std::endl;
+		CSV2.close();
+		std::ofstream CSV3("testgi3.csv");
+		CSV3 << "Test1,abc" << std::endl;
+		CSV3 << "0, a" << std::endl;
+		CSV3.close();
+
+		CSVParser csv1("testgi1.csv");
+		EXPECT_THROW(CSVGraph graph(csv1), FormatInvalid);
+
+		CSVParser csv2("testgi2.csv");
+		EXPECT_THROW(CSVGraph graph(csv2), FormatInvalid);
+
+		CSVParser csv3("testgi3.csv");
+		EXPECT_THROW(CSVGraph graph(csv3), FormatInvalid);
+
 	} ENDM
 
 		//AZ ALLAPOTGEP MINDEN ESETERE TESZT
 		TEST(Agent, moved state) {
+		Node node1;
+		Node node2;
+		Node node3;
+		Node node4;
+		Edge edge1 = Edge(&node1, &node2, 10, Time(10, 0), "name1");
+		Edge edge2 = Edge(&node2, &node3, 20, Time(12, 40), "name2");
+		Array<Edge*> edges1;
+		edges1 += &edge1;
+		Array<Edge*> edges2;
+		edges2 += &edge2;
+		node1 = Node(Array<Edge*>(edges1), "name1");
+		node2 = Node(Array<Edge*>(edges2), "name2");
+		node3 = Node(Array<Edge*>(), "name3");
+		Array<Node*> nodes;
+		nodes += &node1;
+		nodes += &node2;
+		nodes += &node3;
+		Graph graph(nodes);
+
+		Agent agent(edge1, node1, node3);
+
+		EXPECT_EQ(moved, agent.step());
+		EXPECT_EQ(&edge2, agent.getEdges()[1]);
+
 	} ENDM
 
 		TEST(Agent, terminated state) {
+		Node node1;
+		Node node2;
+		Node node3;
+		Node node4;
+		Edge edge1 = Edge(&node1, &node2, 10, Time(10, 0), "name1");
+		Edge edge2 = Edge(&node3, &node4, 20, Time(12, 40), "name2");
+		Edge edge3 = Edge(&node4, &node3, 20, Time(12, 40), "name3");
+		Array<Edge*> edges1;
+		edges1 += &edge1;
+		Array<Edge*> edges3;
+		edges3 += &edge2;
+		Array<Edge*> edges4;
+		edges4 += &edge3;
+		node1 = Node(Array<Edge*>(edges1), "name1");
+		node2 = Node(Array<Edge*>(), "name2");
+		node3 = Node(Array<Edge*>(edges3), "name3");
+		node4 = Node(Array<Edge*>(edges4), "name4");
+		Array<Node*> nodes;
+		nodes += &node1;
+		nodes += &node2;
+		nodes += &node3;
+		Graph graph(nodes);
+
+		//ZSÁKUTCA
+		Agent agent1(edge1, node1, node1);
+		//KÖR
+		Agent agent2(edge3, node1, node1);
+		agent2.step();
+
+		EXPECT_EQ(terminated, agent1.step());
+		EXPECT_EQ(terminated, agent2.step());
 	} ENDM
 
 		TEST(Agent, arrived state) {
@@ -263,6 +466,10 @@ int main() {
 	} ENDM
 
 		TEST(Agent pathfinder, simple) {
+		AgentPathfinder pathfinder(simpleTestGraph, 1);
+		Array<Route*> routes = pathfinder.getRoutes(node1, node3, Time(0, 0));
+		EXPECT_EQ(1, routes.getLength());
+		SimpleTestRoute == *routes[0];
 	} ENDM
 
 		TEST(Agent pathfinder, number of routes) {
@@ -272,6 +479,6 @@ int main() {
 		TEST(Agent pathfinder, complex) {
 	} ENDM
 
-	return 0;
+		return 0;
 }
 #endif

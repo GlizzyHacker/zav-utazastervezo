@@ -9,6 +9,7 @@
 #include "memtrace.h"
 
 #ifndef CPORTA
+#ifndef TESTS
 
 class MissingParameter : public std::exception {
 	virtual const char* what() const throw()
@@ -125,4 +126,5 @@ int main(int argc, char* argv[]) {
 
 	}
 }
+#endif
 #endif
