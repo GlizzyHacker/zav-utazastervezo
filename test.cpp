@@ -25,9 +25,9 @@ bool operator!=(const Time& time1, const Time& time2) {
 }
 
 bool operator==(const Edge& edge1, const Edge& edge2) {
-	EXPECT_EQ(edge1.getName(), edge2.getName());
+	EXPECT_STREQ(edge1.getName(), edge2.getName());
 
-	EXPECT_EQ(edge1.getToNode()->getName(), edge2.getToNode()->getName());
+	EXPECT_STREQ(edge1.getToNode()->getName(), edge2.getToNode()->getName());
 
 	EXPECT_EQ(edge1.getStartTime(), edge2.getStartTime());
 
@@ -46,7 +46,7 @@ bool operator==(const Route& route1, const Route& route2) {
 	}
 	catch (const std::out_of_range&)
 	{
-		FAIL() << "Route too short";
+		FAIL() << "Route too short" << std::endl;
 	}
 	return true;
 }
@@ -56,7 +56,7 @@ bool operator==(const Graph& graph1, const Graph& graph2) {
 	{
 		for (size_t i = 0; i < graph1.getNodes().getLength(); i++)
 		{
-			EXPECT_STREQ(graph1.getNodes()[i]->getName(), graph2.getNodes()[i]->getName()) << i << ". node";
+			EXPECT_STREQ(graph1.getNodes()[i]->getName(), graph2.getNodes()[i]->getName()) << i << ". node" << std::endl;
 			for (size_t j = 0; j < graph1.getNodes()[i]->getEdges().getLength(); j++)
 			{
 				std::cout << i << ". node " << j << ". edge" << std::endl;
@@ -66,7 +66,7 @@ bool operator==(const Graph& graph1, const Graph& graph2) {
 	}
 	catch (const std::out_of_range&)
 	{
-		FAIL() << "Graph too short";
+		FAIL() << "Graph too short" << std::endl;
 	}
 	return true;
 }
@@ -132,8 +132,8 @@ int main() {
 		std::stringstream str1, str2;
 		str1 << t1;
 		str2 << t2;
-		EXPECT_STREQ("13:22", str1.str().c_str());
-		EXPECT_STREQ("08:53", str2.str().c_str());
+		t1 == Time(13, 22);
+		t2 == Time(8, 53);
 	} ENDM
 
 		TEST(Main, isArgument) {
@@ -318,7 +318,26 @@ int main() {
 		EXPECT_EQ(&node2, edge.getToNode());
 	} ENDM
 
-		TEST(Graph from csv, cron format) {
+		TEST(Cron from csv, cron simple) {
+		Array<Time> times = parseTime("11 12");
+		times[0] == Time(11, 12);
+
+	} ENDM
+
+		TEST(Cron from csv, cron asterisk) {
+		Array<Time> times = parseTime("* *");
+		for (size_t i = 0; i < 24; i++)
+		{
+			for (size_t j = 0; j < 60; j++)
+			{
+				Time(i, j) == times[i * 60 + j];
+			}
+		}
+	} ENDM
+
+		TEST(Cron from csv, cron exception) {
+		EXPECT_THROW(parseTime("*"), std::out_of_range);
+		EXPECT_THROW(parseTime("a 1"), FormatInvalid);
 
 	} ENDM
 
