@@ -1,11 +1,16 @@
-﻿#include <ostream>
-#include <sstream>
+﻿#include <sstream>
 #include <cstring>
 #include <string>
+#include <iostream>
+
+#ifndef LOGGER
+#define LOGGER
 
 //KIIRÁSOKHOZ SEGÉDFÜGGVÉNYEK
 
-std::ostream& LOG = std::cout;
+inline std::ostream& l() {
+	return std::cout;
+}
 
 //Egy pointerből csinál egy könnyeben olvasható azonosítót
 template<typename T>
@@ -17,3 +22,4 @@ std::string ID(T* ptr) {
 	sstream2 << '<' << typeid(T).name() << (char)str[strlen(str.c_str()) - 1] << (char)str[strlen(str.c_str()) - 3] << (char)str[strlen(str.c_str()) - 5] << '>';
 	return sstream2.str();
 }
+#endif

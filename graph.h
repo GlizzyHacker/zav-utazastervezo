@@ -1,4 +1,4 @@
-#include "time.h"
+#include "mytime.h"
 #include "array.hpp"
 
 #ifndef GRAPH

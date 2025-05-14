@@ -1,5 +1,6 @@
+#include <cstring>
 #include "graph.h"
-#include "time.h"
+#include "mytime.h"
 
 Node::Node(Array<Edge*> edges,const char* newName) : edges(edges) {
 	name = new char[strlen(newName) + 1];
@@ -26,6 +27,7 @@ Node& Node::operator=(const Node& other) {
 	name = new char[strlen(other.name) + 1];
 	strcpy(name, other.name);
 	edges = other.edges;
+	return *this;
 }
 
 Node::~Node() {
@@ -72,6 +74,7 @@ Edge& Edge::operator=(const Edge& other) {
 	to = other.to;
 	weight = other.weight;
 	startTime = other.startTime;
+	return *this;
 }
 
 Edge::~Edge() {

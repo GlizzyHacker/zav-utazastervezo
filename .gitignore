@@ -34,3 +34,5 @@
 /zav/x64/Debug
 /.vs
 /zav/Debug
+
+*.csv

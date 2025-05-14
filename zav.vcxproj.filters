@@ -33,13 +33,13 @@
     <ClCompile Include="graph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="time.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="agent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pathfinder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="mytime.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -65,13 +65,13 @@
     <ClInclude Include="memtrace.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="time.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="array.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="log.h">
+    <ClInclude Include="log.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mytime.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

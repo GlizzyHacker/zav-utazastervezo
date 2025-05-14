@@ -1,6 +1,6 @@
 #include "agent.h"
-#include "graph.h";
-#include "log.h";
+#include "graph.h"
+#include "log.hpp"
 
 #ifndef DEPTH_LIMIT
 #define DEPTH_LIMIT 1024
@@ -19,7 +19,7 @@ Agent::Agent(const Agent& other, Edge* edge) : Route(other.edges), start(other.s
 }
 
 AgentState Agent::step() {
-	LOG << "Inspecting edge:" << ID(edges.last())<< edges.last()->getName() << ", ";
+	l() << "Inspecting edge:" << ID(edges.last())<< edges.last()->getName() << ", ";
 	for (size_t i = 0; i < edges.getLength() - 1; i++)
 	{
 		//KÖR
@@ -59,7 +59,7 @@ Array<Route*> AgentPathfinder::getRoutes(const Node& from, const Node& to, Time 
 
 	int depth = 1;
 	while (true) {
-		LOG << "Depth:" << depth << " Num agents:" << agents.getLength() << std::endl;
+		l() << "Depth:" << depth << " Num agents:" << agents.getLength() << std::endl;
 		if (depth > DEPTH_LIMIT) {
 			throw std::range_error("Depth limit reached");
 		}
@@ -70,20 +70,20 @@ Array<Route*> AgentPathfinder::getRoutes(const Node& from, const Node& to, Time 
 			if (agents[i] == NULL) {
 				continue;
 			}
-			LOG << "Agent:" << ID(agents[i]) << ", ";
+			l() << "Agent:" << ID(agents[i]) << ", ";
 			AgentState state = agents[i]->step();
 			switch (state)
 			{
 			case moved:
-				LOG << "moved to:" << agents[i]->head()->getName() << std::endl;
+				l() << "moved to:" << agents[i]->head()->getName() << std::endl;
 				splitAgent(*agents[i]);
 				break;
 			case arrived:
-				LOG << "arrived at:" << agents[i]->head()->getName() << std::endl;
+				l() << "arrived at:" << agents[i]->head()->getName() << std::endl;
 				return Array<Route*>(1, (Route**)(agents + i));
 				break;
 			case terminated:
-				LOG << "terminated at:" << agents[i]->head()->getName() << std::endl;
+				l() << "terminated at:" << agents[i]->head()->getName() << std::endl;
 				//HACK: TÖRLÉS MÚVELET HIÁNYZIK
 				*(agents + i) = NULL;
 				break;
@@ -92,7 +92,7 @@ Array<Route*> AgentPathfinder::getRoutes(const Node& from, const Node& to, Time 
 			}
 		}
 		if (agents.getLength() == 0) {
-			LOG << "No agents remaining" << std::endl;
+			l() << "No agents remaining" << std::endl;
 			break;
 		}
 

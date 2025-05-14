@@ -134,9 +134,9 @@
     <ClCompile Include="graph.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memtrace.cpp" />
+    <ClCompile Include="mytime.cpp" />
     <ClCompile Include="pathfinder.cpp" />
     <ClCompile Include="test.cpp" />
-    <ClCompile Include="time.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="agent.h" />
@@ -145,10 +145,10 @@
     <ClInclude Include="csvparser.h" />
     <ClInclude Include="graph.h" />
     <ClInclude Include="gtest_lite.h" />
-    <ClInclude Include="log.h" />
+    <ClInclude Include="log.hpp" />
     <ClInclude Include="memtrace.h" />
+    <ClInclude Include="mytime.h" />
     <ClInclude Include="pathfinder.h" />
-    <ClInclude Include="time.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
