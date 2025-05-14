@@ -38,8 +38,14 @@ public:
 	}
 
 	Array& operator=(const Array& other) {
+		if (&other == this) {
+			return *this;
+		}
 		length = other.length;
 		capacity = other.length;
+		if (array != NULL) {
+			delete[] array;
+		}
 		array = new T[length];
 		fill(other.array, length);
 		return *this;
