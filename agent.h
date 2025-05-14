@@ -13,19 +13,31 @@ enum AgentState
 };
 
 class Agent : public Route {
-	Node* start;
-	Node* target;
+	const Node* start;
+	const Node* target;
 public:
-	Agent(Edge& edge, Node& start, Node& target);
-	Agent(const Agent&);
+	Agent(Edge& edge, const Node& start, const Node& target);
+	
+	Agent(const Agent&, Edge* firstEdge = NULL);
+	
 	AgentState step();
+
+	const Node* head() const;
 };
 
 class AgentPathfinder : public Pathfinder {
-	Agent* agents;
+	Graph graph;
+	
+	int numResult;
+
+	Array<Agent*> agents;
+
+	void splitAgent(const Agent&, int startEdge = 1);
 public:
 	AgentPathfinder(Graph graph, int numRoutes = 3);
 
-	Array<Route*> getRoutes(Node* from, Node* to, Time starTime);
+	Array<Route*> getRoutes(const Node& from, const Node& to, Time starTime);
+
+	~AgentPathfinder();
 };
 #endif
