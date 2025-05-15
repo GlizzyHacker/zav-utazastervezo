@@ -51,14 +51,21 @@ const Node* Agent::head() const {
 AgentPathfinder::AgentPathfinder(Graph graph, int numResult) : agents(Array<Agent*>()), Pathfinder(graph, numResult) {}
 
 Array<Route*> AgentPathfinder::getRoutes(const Node& from, const Node& to, Time startTime) {
+	//HIBÁT DOB HA FROM ÉS TO NINCS A GRÁFBAN
+	graph.getNode(from.getName());
+	graph.getNode(to.getName());
+	
+	Array<Route*> routes(0);
 	Array<Edge*> firstEdges = from.getEdges();
 	for (size_t i = 0; i < firstEdges.getLength(); i++)
 	{
 		agents += new Agent(*firstEdges[i], from, to);
+		agentsActive += true;
+		Array<bool> agentsActive;
 	}
 
 	int depth = 1;
-	while (true) {
+	while (activeAgents() != 0) {
 		l() << "Depth:" << depth << " Num agents:" << agents.getLength() << std::endl;
 		if (depth > DEPTH_LIMIT) {
 			throw std::range_error("Depth limit reached");
@@ -67,7 +74,7 @@ Array<Route*> AgentPathfinder::getRoutes(const Node& from, const Node& to, Time 
 		for (size_t i = 0; i < agents.getLength(); i++)
 		{
 			//HACK: TÖRLÉS MÚVELET HIÁNYZIK
-			if (agents[i] == NULL) {
+			if (agentsActive[i] == false) {
 				continue;
 			}
 			l() << "Agent:" << ID(agents[i]) << ", ";
@@ -80,12 +87,15 @@ Array<Route*> AgentPathfinder::getRoutes(const Node& from, const Node& to, Time 
 				break;
 			case arrived:
 				l() << "arrived at:" << agents[i]->head()->getName() << std::endl;
-				return Array<Route*>(1, (Route**)(agents + i));
+				routes += agents[i];
+				deleteAgent(i);
+				if (routes.getLength() == numRoutes) {
+					return routes;
+				}
 				break;
 			case terminated:
 				l() << "terminated at:" << agents[i]->head()->getName() << std::endl;
-				//HACK: TÖRLÉS MÚVELET HIÁNYZIK
-				*(agents + i) = NULL;
+				deleteAgent(i);
 				break;
 			default:
 				break;
@@ -98,6 +108,12 @@ Array<Route*> AgentPathfinder::getRoutes(const Node& from, const Node& to, Time 
 
 		depth++;
 	}
+	return routes;
+}
+
+//HACK: TÖRLÉS MÚVELET HIÁNYZIK
+void AgentPathfinder::deleteAgent(int i, bool freeMem) {
+	*(agentsActive + i) = false;
 }
 
 void AgentPathfinder::splitAgent(const Agent& agent, int startEdge)
@@ -107,13 +123,27 @@ void AgentPathfinder::splitAgent(const Agent& agent, int startEdge)
 	for (size_t i = startEdge; i < edges.getLength(); i++)
 	{
 		agents += new Agent(agent, edges[i]);
+		agentsActive += true;
 	}
+}
+
+int AgentPathfinder::activeAgents() {
+	int count = 0;
+	for (size_t i = 0; i < agents.getLength(); i++)
+	{
+		if (agentsActive[i] == true) {
+			count++;
+		}
+	}
+	return count;
 }
 
 AgentPathfinder::~AgentPathfinder() {
 	for (size_t i = 0; i < agents.getLength(); i++)
 	{
-		delete agents[i];
+		if (agents[i] != NULL) {
+			delete agents[i];
+		}
 	}
 }
 

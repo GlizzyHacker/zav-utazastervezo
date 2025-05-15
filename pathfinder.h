@@ -4,6 +4,7 @@
 #ifndef PATHFINDER
 #define PATHFINDER
 class Pathfinder {
+protected:
 	Graph graph;
 	int numRoutes;
 public:

@@ -26,13 +26,15 @@ public:
 };
 
 class AgentPathfinder : public Pathfinder {
-	Graph graph;
-	
-	int numResult;
-
 	Array<Agent*> agents;
 
-	void splitAgent(const Agent&, int startEdge = 1);
+	Array<bool> agentsActive;
+
+	void splitAgent(const Agent&, int startEdge = 1); 
+	
+	void deleteAgent(int i, bool freeMem = true);
+	
+	int activeAgents();
 public:
 	AgentPathfinder(Graph graph, int numRoutes = 3);
 
