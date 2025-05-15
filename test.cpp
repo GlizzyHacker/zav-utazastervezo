@@ -17,6 +17,29 @@
 
 #ifdef TESTS
 
+//HACK: TOO LAZY TO IMPLEMENT VARIADIC FUNCTION
+template<typename T>
+Array<T> toArray(T item) {
+	Array<T> arr;
+	arr += item;
+	return arr;
+}
+template<typename T>
+Array<T> toArray(T item1, T item2) {
+	Array<T> arr;
+	arr += item1;
+	arr += item2;
+	return arr;
+}
+template<typename T>
+Array<T> toArray(T item1, T item2, T item3) {
+	Array<T> arr;
+	arr += item1;
+	arr += item2;
+	arr += item3;
+	return arr;
+}
+
 bool operator==(const Time& time1, const Time& time2) {
 	return time1 - time2 == 0;
 }
@@ -81,6 +104,59 @@ bool isArgument(const char* input, const char arg, const char* argument) {
 	return false;
 }
 int main() {
+	//SIMPLE TEST OBJECTS
+	Node node1;
+	Node node2;
+	Node node3;
+	Edge edge1 = Edge(&node1, &node2, 10, Time(10, 0), "edge");
+	Edge edge2 = Edge(&node2, &node3, 20, Time(10, 10), "edge");
+	Array<Edge*> edges1;
+	edges1 += &edge1;
+	Array<Edge*> edges2;
+	edges2 += &edge2;
+	node1 = Node(Array<Edge*>(edges1), "name1");
+	node2 = Node(Array<Edge*>(edges2), "name2");
+	node3 = Node(Array<Edge*>(), "name3");
+	Array<Node*> nodes;
+	nodes += &node1;
+	nodes += &node2;
+	nodes += &node3;
+	Graph simpleTestGraph(nodes);
+
+	Array<Edge*> edges;
+	edges += &edge1;
+	edges += &edge2;
+	Route SimpleTestRoute(edges);
+
+	//COMPLEX TEST OBJECTS
+	Node complexNodeStart;
+	Node complexNodeEnd;
+	Node complexNode1;
+	Node complexNode2;
+	Node complexNode3;
+	Edge complexEdge1 = Edge(&complexNodeStart, &complexNode1, 10, Time(10, 0), "edge1");
+	Edge complexEdge2 = Edge(&complexNodeStart, &complexNode2, 11, Time(8, 0), "edge2");
+	Edge complexEdge3 = Edge(&complexNodeStart, &complexNode3, 12, Time(9, 0), "edge3");
+	Edge complexEdge4 = Edge(&complexNode1, &complexNodeEnd, 15, Time(10, 10), "edge1");
+	Edge complexEdge5 = Edge(&complexNode2, &complexNodeEnd, 16, Time(10, 11), "edge2");
+	Edge complexEdge6 = Edge(&complexNode3, &complexNodeEnd, 17, Time(10, 12), "edge3");
+	complexNodeStart = Node(toArray(&complexEdge1, &complexEdge2, &complexEdge3), "nodeStart");
+	complexNode1 = Node(toArray(&complexEdge4), "node1");
+	complexNode2 = Node(toArray(&complexEdge5), "node2");
+	complexNode3 = Node(toArray(&complexEdge6), "node3");
+	complexNodeEnd = Node(Array<Edge*>(), "nodeEnd");
+	Array<Node*> complexNodes;
+	complexNodes += &complexNodeStart;
+	complexNodes += &complexNodeEnd;
+	complexNodes += &complexNode1;
+	complexNodes += &complexNode2;
+	complexNodes += &complexNode3;
+	Graph complexTestGraph(complexNodes);
+
+	Route ComplexTestRoute1(toArray(&complexEdge1, &complexEdge4));
+	Route ComplexTestRoute2(toArray(&complexEdge2, &complexEdge5));
+	Route ComplexTestRoute3(toArray(&complexEdge3, &complexEdge6));
+
 	TEST(Array, operators) {
 		int tmp[1];
 		tmp[0] = 2;
@@ -341,30 +417,22 @@ int main() {
 
 	} ENDM
 
-		Node node1;
-	Node node2;
-	Node node3;
-	Edge edge1 = Edge(&node1, &node2, 10, Time(10, 0), "edge");
-	Edge edge2 = Edge(&node2, &node3, 20, Time(10, 10), "edge");
-	Array<Edge*> edges1;
-	edges1 += &edge1;
-	Array<Edge*> edges2;
-	edges2 += &edge2;
-	node1 = Node(Array<Edge*>(edges1), "name1");
-	node2 = Node(Array<Edge*>(edges2), "name2");
-	node3 = Node(Array<Edge*>(), "name3");
-	Array<Node*> nodes;
-	nodes += &node1;
-	nodes += &node2;
-	nodes += &node3;
-	Graph simpleTestGraph(nodes);
+	TEST(Route to csv, simple) {
+		CSVLine line = writeRoute(SimpleTestRoute);
 
-	Array<Edge*> edges;
-	edges += &edge1;
-	edges += &edge2;
-	Route SimpleTestRoute(edges);
+		EXPECT_EQ(9,line.getColumns().getLength());
+		EXPECT_STREQ("30", line.getColumns()[0] + 0);
+		EXPECT_STREQ("10:00", line.getColumns()[1] + 0);
+		EXPECT_STREQ("edge", line.getColumns()[2] + 0);
+		EXPECT_STREQ("10", line.getColumns()[3] + 0);
+		EXPECT_STREQ("name2", line.getColumns()[4] + 0);
+		EXPECT_STREQ("10:10", line.getColumns()[5] + 0);
+		EXPECT_STREQ("edge", line.getColumns()[6] + 0);
+		EXPECT_STREQ("20", line.getColumns()[7] + 0);
+		EXPECT_STREQ("name3", line.getColumns()[8] + 0);
+	} ENDM
 
-	TEST(Graph from csv, simple graph) {
+		TEST(Graph from csv, simple graph) {
 		std::ofstream CSV("testgs.csv");
 		CSV << "edge,10 0" << std::endl;
 		CSV << "0,name1" << std::endl;
@@ -421,18 +489,9 @@ int main() {
 		Node node4;
 		Edge edge1 = Edge(&node1, &node2, 10, Time(10, 0), "name1");
 		Edge edge2 = Edge(&node2, &node3, 20, Time(12, 40), "name2");
-		Array<Edge*> edges1;
-		edges1 += &edge1;
-		Array<Edge*> edges2;
-		edges2 += &edge2;
-		node1 = Node(Array<Edge*>(edges1), "name1");
-		node2 = Node(Array<Edge*>(edges2), "name2");
+		node1 = Node(toArray(&edge1), "name1");
+		node2 = Node(toArray(&edge2), "name2");
 		node3 = Node(Array<Edge*>(), "name3");
-		Array<Node*> nodes;
-		nodes += &node1;
-		nodes += &node2;
-		nodes += &node3;
-		Graph graph(nodes);
 
 		Agent agent(edge1, node1, node3);
 
@@ -449,55 +508,64 @@ int main() {
 		Edge edge1 = Edge(&node1, &node2, 10, Time(10, 0), "name1");
 		Edge edge2 = Edge(&node3, &node4, 20, Time(12, 40), "name2");
 		Edge edge3 = Edge(&node4, &node3, 20, Time(12, 40), "name3");
-		Array<Edge*> edges1;
-		edges1 += &edge1;
-		Array<Edge*> edges3;
-		edges3 += &edge2;
-		Array<Edge*> edges4;
-		edges4 += &edge3;
-		node1 = Node(Array<Edge*>(edges1), "name1");
+		node1 = Node(toArray(&edge1), "name1");
 		node2 = Node(Array<Edge*>(), "name2");
-		node3 = Node(Array<Edge*>(edges3), "name3");
-		node4 = Node(Array<Edge*>(edges4), "name4");
-		Array<Node*> nodes;
-		nodes += &node1;
-		nodes += &node2;
-		nodes += &node3;
-		Graph graph(nodes);
+		node3 = Node(toArray(&edge2), "name3");
+		node4 = Node(toArray(&edge3), "name4");
 
 		//ZSÁKUTCA
 		Agent agent1(edge1, node1, node1);
+		EXPECT_EQ(terminated, agent1.step());
+
 		//KÖR
-		Agent agent2(edge3, node1, node1);
+		Agent agent2(edge3, node4, node1);
 		agent2.step();
 
-		EXPECT_EQ(terminated, agent1.step());
 		EXPECT_EQ(terminated, agent2.step());
 	} ENDM
 
 		TEST(Agent, arrived state) {
-	} ENDM
+		Node node1;
+		Node node2;
+		Edge edge1 = Edge(&node1, &node2, 10, Time(10, 0), "name1");
+		Edge edge2 = Edge(&node2, &node1, 20, Time(12, 40), "name2");
+		node1 = Node(toArray(&edge1), "name1");
+		node2 = Node(Array<Edge*>(), "name2");
 
-		TEST(Agent pathfinder, create agent) {
-	} ENDM
+		Agent agent(edge1, node1, node2);
 
-		TEST(Agent pathfinder, delete agent) {
+		EXPECT_EQ(arrived, agent.step());
 	} ENDM
 
 		TEST(Agent pathfinder, simple) {
 		AgentPathfinder pathfinder(simpleTestGraph, 1);
+
 		Array<Route*> routes = pathfinder.getRoutes(node1, node3, Time(0, 0));
+
 		EXPECT_EQ(1, routes.getLength());
 		SimpleTestRoute == *routes[0];
 	} ENDM
 
-		TEST(Agent pathfinder, number of routes) {
-	} ENDM
+	TEST(Agent pathfinder, complex) {
+		AgentPathfinder pathfinder(complexTestGraph, 3);
 
+		Array<Route*> routes = pathfinder.getRoutes(complexNodeStart, complexNodeEnd, Time(0, 0));
+
+		if (routes.getLength() != 3) {
+			FAIL();
+		}
+		else {
+			ComplexTestRoute1 == *routes[0];
+			ComplexTestRoute2 == *routes[1];
+			ComplexTestRoute3 == *routes[2];
+		}
+	} ENDM
 		//IDE KERULNEK TESZT ESETEK TRUKKOS HELYZETEKKEL
-		TEST(Agent pathfinder, complex) {
+
+		TEST(comprehensive, something) {
+
 	} ENDM
 
-		return 0;
+	return 0;
 }
 #endif
