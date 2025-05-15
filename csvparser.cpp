@@ -1,7 +1,7 @@
 ﻿#include <cstring>
 #include <ostream>
+#include <sstream>
 #include <fstream>
-#include <cstring>
 #include "csvparser.h"
 #include "memtrace.h"
 
@@ -69,16 +69,14 @@ CSVLine& CSVLine::operator=(const CSVLine& other) {
 }
 
 void CSVLine::operator+=(const char* str) {
-	columns += Array<char>(strlen(str), str);
+	columns += Array<char>(strlen(str)+1, str);
 }
 
 void CSVLine::operator+=(int i) {
-	//A SZAMJEGYEK SZAMA l()10 i
-	char* num = new char[ceil(log10(i))];
+	std::stringstream numStream;
+	numStream << i;
 
-	operator+=(num);
-
-	delete[] num;
+	operator+=(numStream.str().c_str());
 }
 
 std::ostream& operator<<(std::ostream& os, const CSVLine& line) {
