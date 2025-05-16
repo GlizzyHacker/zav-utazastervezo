@@ -7,10 +7,10 @@
 
 class FormatInvalid : public std::exception {
 	const char* file;
-	int line;
-	int character;
+	size_t line;
+	size_t character;
 public:
-	FormatInvalid(const char file[] = NULL, int line = -1, int character = -1);
+	FormatInvalid(const char file[] = NULL, size_t line = 0, size_t character = 0);
 };
 
 class CSVLine {
@@ -32,7 +32,7 @@ public:
 
 	void operator+=(const char*);
 
-	void operator+=(int);
+	void operator+=(size_t);
 };
 
 std::ostream& operator<<(std::ostream& os, const CSVLine& line);

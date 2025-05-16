@@ -29,15 +29,17 @@ public:
 
 class Edge {
 protected:
+
 	Node* from;
 	
 	Node* to;
-	
-	int weight;
 
+	int weight;
+	
 	Time startTime;
 	
 	char* name;
+
 public:
 	Edge(Node* from, Node* to, int weight, Time startTime, const char* name);
 
@@ -45,8 +47,9 @@ public:
 	
 	const char* getName() const;
 
-	int getWeight(Time currentTime) const;
-	int getWeight() const;
+	size_t getWeight(Time currentTime) const;
+
+	size_t getWeight() const;
 	
 	Time getStartTime() const;
 
@@ -78,7 +81,7 @@ public:
 
 	Array<Edge*> getEdges() const;
 	
-	int getTotalWeight(Time startTime) const;
+	size_t getTotalWeight(Time startTime) const;
 };
 
 #endif

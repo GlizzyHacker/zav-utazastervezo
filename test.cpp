@@ -105,28 +105,21 @@ bool isArgument(const char* input, const char arg, const char* argument) {
 }
 int main() {
 	//SIMPLE TEST OBJECTS
-	Node node1;
-	Node node2;
-	Node node3;
-	Edge edge1 = Edge(&node1, &node2, 10, Time(10, 0), "edge");
-	Edge edge2 = Edge(&node2, &node3, 20, Time(10, 10), "edge");
+	Node simpleNode1;
+	Node simpleNode2;
+	Node simpleNode3;
+	Edge simpleEdge1 = Edge(&simpleNode1, &simpleNode2, 10, Time(10, 0), "edge");
+	Edge simpleEdge2 = Edge(&simpleNode2, &simpleNode3, 20, Time(10, 10), "edge");
 	Array<Edge*> edges1;
-	edges1 += &edge1;
+	edges1 += &simpleEdge1;
 	Array<Edge*> edges2;
-	edges2 += &edge2;
-	node1 = Node(Array<Edge*>(edges1), "name1");
-	node2 = Node(Array<Edge*>(edges2), "name2");
-	node3 = Node(Array<Edge*>(), "name3");
-	Array<Node*> nodes;
-	nodes += &node1;
-	nodes += &node2;
-	nodes += &node3;
-	Graph simpleTestGraph(nodes);
-
-	Array<Edge*> edges;
-	edges += &edge1;
-	edges += &edge2;
-	Route SimpleTestRoute(edges);
+	edges2 += &simpleEdge2;
+	simpleNode1 = Node(Array<Edge*>(edges1), "name1");
+	simpleNode2 = Node(Array<Edge*>(edges2), "name2");
+	simpleNode3 = Node(Array<Edge*>(), "name3");
+	Graph simpleTestGraph(toArray<Node*>(&simpleNode1, &simpleNode2, &simpleNode3));
+	
+	Route SimpleTestRoute(toArray<Edge*>(&simpleEdge1, &simpleEdge2));
 
 	//COMPLEX TEST OBJECTS
 	Node complexNodeStart;
@@ -183,14 +176,14 @@ int main() {
 	} ENDM
 
 		TEST(Time, print) {
-		Time t1(-12, -12);
+		Time t1(12, 12);
 		Time t2(1, 3);
 		std::stringstream str1, str2;
 
 		str1 << t1;
 		str2 << t2;
 
-		EXPECT_STREQ("11:48", str1.str().c_str());
+		EXPECT_STREQ("12:12", str1.str().c_str());
 		EXPECT_STREQ("01:03", str2.str().c_str());
 	} ENDM
 
@@ -198,8 +191,8 @@ int main() {
 		Time t1(12, 12);
 		Time t2(10, 13);
 
-		int dif1 = t2 - t1;
-		int dif2 = t1 - t2;
+		size_t dif1 = t2 - t1;
+		size_t dif2 = t1 - t2;
 		t1 += 70;
 		t2 -= 80;
 
@@ -260,7 +253,7 @@ int main() {
 		edges += &edge3;
 		Route route(edges);
 
-		int weight = route.getTotalWeight(Time(9, 50));
+		size_t weight = route.getTotalWeight(Time(9, 50));
 
 		EXPECT_EQ(1440 + 50, weight);
 
@@ -417,10 +410,10 @@ int main() {
 
 	} ENDM
 
-	TEST(Route to csv, simple) {
+		TEST(Route to csv, simple) {
 		CSVLine line = writeRoute(SimpleTestRoute);
 
-		EXPECT_EQ(9,line.getColumns().getLength());
+		EXPECT_EQ(9, line.getColumns().getLength());
 		EXPECT_STREQ("30", line.getColumns()[0] + 0);
 		EXPECT_STREQ("10:00", line.getColumns()[1] + 0);
 		EXPECT_STREQ("edge", line.getColumns()[2] + 0);
@@ -540,13 +533,13 @@ int main() {
 		TEST(Agent pathfinder, simple) {
 		AgentPathfinder pathfinder(simpleTestGraph, 1);
 
-		Array<Route*> routes = pathfinder.getRoutes(node1, node3, Time(0, 0));
+		Array<Route*> routes = pathfinder.getRoutes(simpleNode1, simpleNode3, Time(0, 0));
 
 		EXPECT_EQ(1, routes.getLength());
 		SimpleTestRoute == *routes[0];
 	} ENDM
 
-	TEST(Agent pathfinder, complex) {
+		TEST(Agent pathfinder, complex) {
 		AgentPathfinder pathfinder(complexTestGraph, 3);
 
 		Array<Route*> routes = pathfinder.getRoutes(complexNodeStart, complexNodeEnd, Time(0, 0));
@@ -560,12 +553,12 @@ int main() {
 			ComplexTestRoute3 == *routes[2];
 		}
 	} ENDM
-		//IDE KERULNEK TESZT ESETEK TRUKKOS HELYZETEKKEL
 
+		//IDE KERULNEK TESZT ESETEK TRUKKOS HELYZETEKKEL
 		TEST(comprehensive, something) {
 
 	} ENDM
 
-	return 0;
+		return 0;
 }
 #endif

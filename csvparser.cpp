@@ -5,7 +5,7 @@
 #include "csvparser.h"
 #include "memtrace.h"
 
-FormatInvalid::FormatInvalid(const char file[], int line, int character) : file(file), line(line), character(character) {}
+FormatInvalid::FormatInvalid(const char file[], size_t line, size_t character) : file(file), line(line), character(character) {}
 
 Array<char> CSVLine::trim(const Array<char>& charArray) {
 	char* begin = charArray + 0;
@@ -16,8 +16,8 @@ Array<char> CSVLine::trim(const Array<char>& charArray) {
 	while (end != charArray + 0 && isspace(*end)) {
 		end--;
 	}
-	//AZ INKREMENT MŰVELETEK MIATT ROSSZ HELYEN VANNAK A POINTEREK
-	return Array<char>(end - begin + 1, begin);
+
+	return Array<char>((double)(end - begin + 1), begin);
 
 }
 
@@ -72,7 +72,7 @@ void CSVLine::operator+=(const char* str) {
 	columns += Array<char>(strlen(str)+1, str);
 }
 
-void CSVLine::operator+=(int i) {
+void CSVLine::operator+=(size_t i) {
 	std::stringstream numStream;
 	numStream << i;
 
@@ -104,7 +104,7 @@ char* CSVParser::readLine() {
 
 	int ch = file.get();
 	while (!file.eof() && ch != '\n' && ch != EOF) {
-		lineArray += ch;
+		lineArray += (char) ch;
 		ch = file.get();
 	}
 	lineArray += 0;

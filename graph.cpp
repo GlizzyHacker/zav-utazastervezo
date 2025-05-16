@@ -49,11 +49,11 @@ Time Edge::getStartTime() const {
 	return startTime;
 }
 
-int Edge::getWeight() const {
+size_t Edge::getWeight() const {
 	return weight;
 }
 
-int Edge::getWeight(Time currentTime) const {
+size_t Edge::getWeight(Time currentTime) const {
 	return weight + (startTime-currentTime);
 }
 
@@ -105,7 +105,7 @@ Array<Edge*> Route::getEdges() const {
 	return edges;
 }
 
-int Route::getTotalWeight(Time startTime) const {
+size_t Route::getTotalWeight(Time startTime) const {
 	Time time = Time(startTime);
 	for (size_t i = 0; i < edges.getLength(); i++)
 	{

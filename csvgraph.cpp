@@ -22,10 +22,10 @@ void CSVNode::operator+=(CSVEdge& edge) {
 }
 
 CSVGraph::CSVGraph(CSVParser& csv) {
-	int line = 1;
+	size_t line = 1;
 	Array<char> lastHeader;
 	Array<Time> lastTimes;
-	int offset;
+	size_t offset;
 	CSVNode* lastNode = NULL;
 	Array<char> lastColumn1;
 	Array<char> lastColumn2;
@@ -91,11 +91,11 @@ CSVGraph::CSVGraph(CSVParser& csv) {
 	}
 }
 
-Array<int> cronValues(Array<char> string, int range) {
-	Array<int> vals;
+Array<size_t> cronValues(Array<char> string, size_t range) {
+	Array<size_t> vals;
 	int num = atoi(string+0);
-	if (num != 0 || string[0] == '0') {
-		vals += num;
+	if ((num > 0) || string[0] == '0') {
+		vals += (size_t) num;
 	}
 	else if (string.getLength() == 2 && string[0] == '*') {
 		for (size_t i = 0; i < range; i++)
@@ -114,8 +114,8 @@ Array<Time> parseTime(const char* timeString) {
 	//REUSE THE SEPARATION ALGO FROM CSVLINE
 	Array<Array<char>> parts = CSVLine(timeString, ' ').getColumns();
 	
-	Array<int> hours = cronValues(parts[0], 24);
-	Array<int> minutes = cronValues(parts[1], 60);
+	Array<size_t> hours = cronValues(parts[0], 24);
+	Array<size_t> minutes = cronValues(parts[1], 60);
 
 	Array<Time> result;
 	for (size_t i = 0; i < hours.getLength(); i++)

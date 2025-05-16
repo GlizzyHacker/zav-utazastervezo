@@ -6,21 +6,21 @@
 //CIKLIKUS IDOT AD MEG, Tehát nem egy adott napra, hanem minden napra adja meg az időpontot
 class Time {
 	//Arra kell hogy ha az órák túlfolynának
-	int day;
-	int hour;
-	int minute;
+	size_t day;
+	size_t hour;
+	size_t minute;
 
 	void validate();
 public:
 	Time();
 
-	Time(int hour, int minute);
+	Time(size_t hour, size_t minute);
 
-	void operator+=(int minutes);
+	void operator+=(size_t minutes);
 
-	void operator-=(int minutes);
+	void operator-=(size_t minutes);
 
-	int operator-(const Time& other) const;
+	size_t operator-(const Time& other) const;
 
 	std::ostream& print(std::ostream& os) const;
 };

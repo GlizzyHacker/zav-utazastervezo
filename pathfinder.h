@@ -6,9 +6,12 @@
 class Pathfinder {
 protected:
 	Graph graph;
-	int numRoutes;
+	size_t numRoutes;
 public:
-	Pathfinder(Graph graph, int numRoutes = 3);
+	Pathfinder(Graph graph, size_t numRoutes = 3);
+
 	virtual Array<Route*> getRoutes(const Node& from,const Node& to, Time starTime) = 0;
+
+	virtual ~Pathfinder();
 };
 #endif

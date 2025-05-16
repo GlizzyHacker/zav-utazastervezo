@@ -48,7 +48,7 @@ const Node* Agent::head() const {
 	return ((edges.getLength() == 0) ? start : edges.last()->getToNode());
 }
 
-AgentPathfinder::AgentPathfinder(Graph graph, int numResult) : agents(Array<Agent*>()), Pathfinder(graph, numResult) {}
+AgentPathfinder::AgentPathfinder(Graph graph, size_t numResult) : agents(Array<Agent*>()), Pathfinder(graph, numResult) {}
 
 Array<Route*> AgentPathfinder::getRoutes(const Node& from, const Node& to, Time startTime) {
 	//HIBÁT DOB HA FROM ÉS TO NINCS A GRÁFBAN
@@ -61,10 +61,9 @@ Array<Route*> AgentPathfinder::getRoutes(const Node& from, const Node& to, Time 
 	{
 		agents += new Agent(*firstEdges[i], from, to);
 		agentsActive += true;
-		Array<bool> agentsActive;
 	}
 
-	int depth = 1;
+	size_t depth = 1;
 	while (activeAgents() != 0) {
 		l() << "Depth:" << depth << " Num agents:" << agents.getLength() << std::endl;
 		if (depth > DEPTH_LIMIT) {
@@ -112,11 +111,11 @@ Array<Route*> AgentPathfinder::getRoutes(const Node& from, const Node& to, Time 
 }
 
 //HACK: TÖRLÉS MÚVELET HIÁNYZIK
-void AgentPathfinder::deleteAgent(int i, bool freeMem) {
+void AgentPathfinder::deleteAgent(size_t i) {
 	*(agentsActive + i) = false;
 }
 
-void AgentPathfinder::splitAgent(const Agent& agent, int startEdge)
+void AgentPathfinder::splitAgent(const Agent& agent, size_t startEdge)
 {
 	Array<Edge*> edges = agent.head()->getEdges();
 	Node* oldHead = agent.getEdges()[agent.getEdges().getLength() - 2]->getToNode();
@@ -127,8 +126,8 @@ void AgentPathfinder::splitAgent(const Agent& agent, int startEdge)
 	}
 }
 
-int AgentPathfinder::activeAgents() {
-	int count = 0;
+size_t AgentPathfinder::activeAgents() {
+	size_t count = 0;
 	for (size_t i = 0; i < agents.getLength(); i++)
 	{
 		if (agentsActive[i] == true) {

@@ -1,6 +1,6 @@
 #include "pathfinder.h"
 #include "graph.h"
-#include "array.hpp";
+#include "array.hpp"
 
 #ifndef AGENT
 #define AGENT
@@ -30,13 +30,13 @@ class AgentPathfinder : public Pathfinder {
 
 	Array<bool> agentsActive;
 
-	void splitAgent(const Agent&, int startEdge = 1); 
+	void splitAgent(const Agent&, size_t startEdge = 1); 
 	
-	void deleteAgent(int i, bool freeMem = true);
+	void deleteAgent(size_t i);
 	
-	int activeAgents();
+	size_t activeAgents();
 public:
-	AgentPathfinder(Graph graph, int numRoutes = 3);
+	AgentPathfinder(Graph graph, size_t numRoutes = 3);
 
 	Array<Route*> getRoutes(const Node& from, const Node& to, Time starTime);
 
