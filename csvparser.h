@@ -20,6 +20,8 @@ class CSVLine {
 	Array<Array<char>> columns;
 
 	void createColumn(const char* start, size_t len);
+
+	const char* findNextSeparator(const char str[], char sep);
 public:
 	CSVLine();
 	

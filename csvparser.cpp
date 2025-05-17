@@ -17,10 +17,10 @@ const char* FormatInvalid::what() const throw()
 Array<char> CSVLine::trim(const Array<char>& charArray) {
 	char* begin = charArray + 0;
 	char* end = charArray + (charArray.getLength() - 1);
-	while (begin != end && isspace(*begin)) {
+	while (begin != end && (isspace(*begin) || *begin == '"')) {
 		begin++;
 	}
-	while (end != charArray + 0 && isspace(*end)) {
+	while (end != charArray + 0 && (isspace(*end) || *end == '"')) {
 		end--;
 	}
 
@@ -37,19 +37,46 @@ void CSVLine::createColumn(const char* start, size_t len) {
 
 CSVLine::CSVLine() {}
 
-//TODO: SUPPORT QUOTES
+enum SeparatorState {
+	base,
+	inQuote,
+	end
+};
+
+//Állapotgép
+const char* CSVLine::findNextSeparator(const char str[], char sep) {
+	SeparatorState state = base;
+	const char* ptr = str;
+	while ((*ptr != 0) && (state != end)) {
+		if (*ptr == sep) {
+			if (state == base) {
+				state = end;
+			}
+		}
+		else if (*ptr == '\"') {
+			if (state == base) {
+				state = inQuote;
+			}
+			else if (state == inQuote) {
+				state = base;
+			}
+		}
+		ptr++;
+	}
+	return state == end ?--ptr : NULL;
+}
 CSVLine::CSVLine(const char line[], char separator) {
 	if (line == NULL) {
 		return;
 	}
 
 	const char* prevSeparator = line - 1;
-	const char* nextSeparator = strchr(line, separator);
+	const char* nextSeparator = findNextSeparator(line, separator);
 	while (nextSeparator != NULL) {
 		size_t lenColumn = nextSeparator - prevSeparator - 1;
 		createColumn(prevSeparator + 1, lenColumn);
 		prevSeparator = nextSeparator;
-		nextSeparator = strchr(nextSeparator + 1, separator);
+		nextSeparator = findNextSeparator(nextSeparator + 1, separator);
 	}
 	if (prevSeparator[1] == 0) {
 		return;
@@ -76,7 +103,7 @@ CSVLine& CSVLine::operator=(const CSVLine& other) {
 }
 
 void CSVLine::operator+=(const char* str) {
-	columns += Array<char>(strlen(str)+1, str);
+	columns += Array<char>(strlen(str) + 1, str);
 }
 
 void CSVLine::operator+=(size_t i) {
@@ -111,7 +138,7 @@ char* CSVParser::readLine() {
 
 	int ch = file.get();
 	while (!file.eof() && ch != '\n' && ch != EOF) {
-		lineArray += (char) ch;
+		lineArray += (char)ch;
 		ch = file.get();
 	}
 	lineArray += 0;
