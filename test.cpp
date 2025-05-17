@@ -226,15 +226,19 @@ int main() {
 		Node node1(Array<Edge*>(), "name1");
 		Node node2(Array<Edge*>(), "name2");
 		Node node3(Array<Edge*>(), "name3");
+		Node nodeU(Array<Edge*>(), "unique");
 		Array<Node*> nodes;
 		nodes += &node1;
 		nodes += &node2;
 		nodes += &node3;
+		nodes += &nodeU;
 		Graph graph(nodes);
 
 		Node* node = graph.getNode("name1");
+		Node* nodeQ = graph.getNode("uni");
 
 		EXPECT_STREQ("name1", node->getName());
+		EXPECT_STREQ("unique", nodeQ->getName());
 		EXPECT_THROW(graph.getNode("name4"), NotFound);
 
 	} ENDM
@@ -267,6 +271,15 @@ int main() {
 		EXPECT_TRUE(line.isEmpty());
 		EXPECT_TRUE(line2.isEmpty());
 		EXPECT_FALSE(line3.isEmpty());
+	} ENDM
+
+		TEST(CSV, line quotes) {
+		CSVLine line = CSVLine("\"test,test\", test, \",test,\", test2");
+
+		EXPECT_STREQ("test,test", line.getColumns()[0]+0);
+		EXPECT_STREQ("test", line.getColumns()[1] + 0);
+		EXPECT_STREQ(",test,", line.getColumns()[2] + 0);
+		EXPECT_STREQ("test2", line.getColumns()[3] + 0);
 	} ENDM
 
 		TEST(CSV, read simple) {
@@ -402,6 +415,13 @@ int main() {
 				Time(i, j) == times[i * 60 + j];
 			}
 		}
+	} ENDM
+		TEST(Cron from csv, cron list) {
+		Array<Time> times = parseTime("1,2,3 0");
+		for (size_t i = 0; i < 24; i++)
+		times[0] == Time(1, 0);
+		times[0] == Time(2, 0);
+		times[0] == Time(3, 0);
 	} ENDM
 
 		TEST(Cron from csv, cron exception) {
