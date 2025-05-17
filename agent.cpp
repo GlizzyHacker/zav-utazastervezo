@@ -59,6 +59,7 @@ Array<Route*> AgentPathfinder::getRoutes(const Node& from, const Node& to, Time 
 	Array<Edge*> firstEdges = from.getEdges();
 	for (size_t i = 0; i < firstEdges.getLength(); i++)
 	{
+		//l() << "Creating new agent on:" << firstEdges[i]->getName() << " to:" << firstEdges[i]->getToNode()->getName() << std::endl;
 		agents += new Agent(*firstEdges[i], from, to);
 		agentsActive += true;
 	}
@@ -70,7 +71,12 @@ Array<Route*> AgentPathfinder::getRoutes(const Node& from, const Node& to, Time 
 			throw std::range_error("Depth limit reached");
 		}
 
-		for (size_t i = 0; i < agents.getLength(); i++)
+		//HA MEGVAN ANNYI UT AMMENNYI KELL AKKOR AZ ANNAL HOSSZABAKAT LEHET TOROLNI
+		if (routes.getLength() >= numRoutes){
+		}
+
+		int numAgents = agents.getLength();
+		for (size_t i = 0; i < numAgents; i++)
 		{
 			//HACK: TÖRLÉS MÚVELET HIÁNYZIK
 			if (agentsActive[i] == false) {
@@ -121,6 +127,7 @@ void AgentPathfinder::splitAgent(const Agent& agent, size_t startEdge)
 	Node* oldHead = agent.getEdges()[agent.getEdges().getLength() - 2]->getToNode();
 	for (size_t i = startEdge; i < edges.getLength(); i++)
 	{
+		//l() << "Creating new agent on:" << edges[i]->getName() << " to:" << edges[i]->getToNode()->getName() << std::endl;
 		agents += new Agent(agent, edges[i]);
 		agentsActive += true;
 	}

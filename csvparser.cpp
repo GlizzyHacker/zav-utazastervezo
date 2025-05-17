@@ -4,14 +4,28 @@
 #include <fstream>
 #include "csvparser.h"
 #include "memtrace.h"
+#include "log.hpp"
 
-FormatInvalid::FormatInvalid(const char file[], size_t line, size_t character) : file(file), line(line), character(character) {
+FormatInvalid::FormatInvalid(const char fileStr[], size_t line, size_t character) : file(NULL), line(line), character(character) {
+	if (fileStr == NULL) {
+		return;
+	}
+	file = new char[strlen(fileStr) + 1];
+	strcpy(file, fileStr);
+	file[strlen(fileStr)] = 0;
 }
+
 const char* FormatInvalid::what() const throw()
 {
 	std::stringstream sstream;
 	sstream << "Helytelen formáutm fájl:" << file << " sor:" << line << "character: " << character;
 	return "Helytelen formátum";
+}
+
+FormatInvalid::~FormatInvalid(){
+	if (file != NULL) {
+		delete[] file;
+	}
 }
 
 Array<char> CSVLine::trim(const Array<char>& charArray) {
@@ -20,7 +34,7 @@ Array<char> CSVLine::trim(const Array<char>& charArray) {
 	while (begin != end && (isspace(*begin) || *begin == '"')) {
 		begin++;
 	}
-	while (end != charArray + 0 && (isspace(*end) || *end == '"')) {
+	while (end != begin + 0 && (isspace(*end) || *end == '"')) {
 		end--;
 	}
 
@@ -133,13 +147,21 @@ char* CSVParser::readLine() {
 	Array<char> lineArray = Array<char>();
 
 	if (file.eof() && next != NULL) {
+		file.close();
 		return next->readLine();
+	}
+
+	if (!beenOpened) {
+		openFile();
 	}
 
 	int ch = file.get();
 	while (!file.eof() && ch != '\n' && ch != EOF) {
 		lineArray += (char)ch;
 		ch = file.get();
+	}
+	if ((ch == EOF || file.eof() )&&path != NULL) {
+		l() << "End of file:" << path << std::endl;
 	}
 	lineArray += 0;
 	//Uj sztringet kell letrehozni mert a jelenlegit az array kezeli
@@ -148,22 +170,27 @@ char* CSVParser::readLine() {
 	return line;
 }
 
-CSVParser::CSVParser(const char* filePath) : next(NULL) {
-	path = new char[strlen(filePath) + 1];
-	strcpy(path, filePath);
-
-	file = std::fstream(filePath, std::ios::in | std::ios::out);
+//Nem a ctor-ban nyitom meg mert 512 a megnyitott fajlok korlatja
+void CSVParser::openFile() {
+	file = std::fstream(path, std::ios::in | std::ios::out);
 
 	if (!file) {
 		//ha nem létezik a fájl létrehozza
-		file.open(filePath, std::ios::out);
+		file.open(path, std::ios::out);
 		file.close();
 		//ujraprobalkozas
-		file = std::fstream(filePath, std::ios::in | std::ios::out);
+		file = std::fstream(path, std::ios::in | std::ios::out);
 		if (!file) {
-			throw FormatInvalid();
+			throw FormatInvalid(path);
 		}
 	}
+
+	beenOpened = true;
+}
+
+CSVParser::CSVParser(const char* filePath) : beenOpened(false), next(NULL) {
+	path = new char[strlen(filePath) + 1];
+	strcpy(path, filePath);
 }
 
 CSVLine CSVParser::read() {
@@ -175,6 +202,9 @@ CSVLine CSVParser::read() {
 }
 
 void CSVParser::write(CSVLine line) {
+	if (!beenOpened) {
+		openFile();
+	}
 	file << line << std::endl;
 }
 
@@ -187,15 +217,21 @@ char* CSVParser::getFileName() const {
 
 //Nem a leghatekonyabb megoldas de mukodik
 void CSVParser::operator+=(CSVParser& other) {
+	if (strcmp(other.path, path) == 0) {
+		return;
+	}
 	if (next == NULL) {
 		next = &other;
 	}
 	else {
-		*next += other;
+		(*next) += other;
 	}
 }
 
 CSVParser::~CSVParser() {
 	delete[] path;
+	if (next != NULL) {
+		delete next;
+	}
 	file.close();
 }

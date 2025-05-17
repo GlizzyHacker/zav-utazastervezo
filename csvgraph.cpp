@@ -1,5 +1,6 @@
 #include <sstream>
 #include <iostream>
+#include <cstdlib>
 #include "csvgraph.h"
 #include "log.hpp"
 
@@ -23,7 +24,6 @@ void CSVNode::operator+=(CSVEdge& edge) {
 
 CSVGraph::CSVGraph(CSVParser& csv) {
 	size_t line = 1;
-	size_t offset = 0;
 	Array<char> lastHeader;
 	Array<Time> lastTimes;
 	CSVNode* lastNode = NULL;
@@ -31,20 +31,25 @@ CSVGraph::CSVGraph(CSVParser& csv) {
 	Array<char> lastColumn2;
 	CSVLine newLine = csv.read();
 	while (!newLine.isEmpty()) {
-		l() << "Processing line:" << line;
+		l() << "Processing line:" << line ;
 		try
-		{			
+		{
 			Array<char> column1 = newLine.getColumns()[0];
 			l() << " 1.Column:\"" << column1 + 0 << "\"";
 			Array<char> column2 = newLine.getColumns()[1];
-			l() << " 2.Column:\"" << column2 + 0 << "\"";
-			int numCol1 = atoi(column1+0);
-			if ((lastHeader.getLength() == 0) || (numCol1 == 0 && column1[0] != '0')) {
-				l() << " New header";
+			l() << " 2.Column:\"" << column2 + 0 << "\"" << std::endl;
+			
+			char* endptr;
+			int numCol1 = (int)strtol(column1 + 0, &endptr, 10);
+			//strtol endptr-be a szam utolso jegye utani karaktert teszi, ha ez nem a lezaro nulla akkor nem az egesz egy szam
+			bool isCol1Number = endptr == column1 + (column1.getLength() - 1);
+
+			if ((lastHeader.getLength() == 0) || !isCol1Number) {
+				l() << "++New header" << std::endl;
 				lastHeader = column1;
-				offset = 0;
+				lastNode = NULL;
 				try {
-					lastTimes = parseTime(column2+0);
+					lastTimes = parseTime(column2 + 0);
 				}
 				catch (const std::exception&)
 				{
@@ -52,61 +57,58 @@ CSVGraph::CSVGraph(CSVParser& csv) {
 					throw(FormatInvalid(csv.getFileName(), line));
 				}
 			}
-			else if ((column1.getLength() == 2 && column1[0] == '0') || numCol1 != 0) {
+			else if (isCol1Number) {
 				CSVNode* node = NULL;
 				try
 				{
-					node = (CSVNode*) getNode(column2 + 0, true);
-					l() << " Existing node:" << node->getName();
+					node = (CSVNode*)getNode(column2 + 0, true);
+					l() << "==Existing node:" << node->getName() << std::endl;
 				}
 				catch (const NotFound&)
 				{
 					node = new CSVNode(column2 + 0);
 					operator+=(*node);
-					l() << " New node:" << node->getName();
+					l() << "--New node:" << node->getName() << std::endl;
 				}
 				if (lastNode != NULL) {
-					offset += atoi(lastColumn1 + 0);
 
 					for (size_t i = 0; i < lastTimes.getLength(); i++)
 					{
 						Time time = lastTimes[i];
-						time += offset;
+						time += atoi(lastColumn1+0);
 						CSVEdge* edge = new CSVEdge(numCol1 - atoi(lastColumn1 + 0), time, lastHeader + 0);
 						*lastNode += *edge;
 						*edge += *node;
-						l() << " New edge:" << time << ID(edge) << edge->getName();
+						l() << "--New edge:" << time << ID(edge) << edge->getName() << std::endl;
 					}
 				}
 				lastNode = node;
 
-			}
-			else if (numCol1 == 0 && lastHeader.getLength() != 0){
-				l() << std::endl;
-				throw(FormatInvalid(csv.getFileName(), line));
 			}
 			lastColumn1 = column1;
 			lastColumn2 = column2;
 		}
 		catch (const std::out_of_range&)
 		{
-			l() << std::endl;
 			throw(FormatInvalid(csv.getFileName(), line));
 		}
-		l() << std::endl;
 
 		line++;
-		newLine = csv.read();
+		//5 ures sort toleral
+		for (size_t i = 0; i < 5; i++)
+		{
+			newLine = csv.read();
+			if (!newLine.isEmpty()) {
+				break;
+			}
+		}
 	}
 }
 
 Array<size_t> cronValues(Array<char> string, size_t range) {
 	Array<size_t> vals;
-	int num = atoi(string+0);
-	if ((num > 0) || string[0] == '0') {
-		vals += (size_t) num;
-	}
-	else if (string.getLength() == 2 && string[0] == '*') {
+
+	if (string.getLength() == 2 && string[0] == '*') {
 		for (size_t i = 0; i < range; i++)
 		{
 			vals += i;
@@ -114,10 +116,10 @@ Array<size_t> cronValues(Array<char> string, size_t range) {
 	}
 	else {
 		//REUSE THE SEPARATION ALGO FROM CSVLINE
-		Array<Array<char>> parts = CSVLine(string+0, ',').getColumns();
+		Array<Array<char>> parts = CSVLine(string + 0, ',').getColumns();
 		for (size_t i = 0; i < parts.getLength(); i++)
 		{
-			int number = atoi(parts[i]+0);
+			int number = atoi(parts[i] + 0);
 			if ((number > 0) || parts[i][0] == '0') {
 				vals += (size_t)number;
 			}
@@ -126,6 +128,7 @@ Array<size_t> cronValues(Array<char> string, size_t range) {
 			}
 		}
 	}
+
 	//TODO: RANGE SUPPORT
 	return vals;
 }
@@ -133,7 +136,7 @@ Array<size_t> cronValues(Array<char> string, size_t range) {
 Array<Time> parseTime(const char* timeString) {
 	//REUSE THE SEPARATION ALGO FROM CSVLINE
 	Array<Array<char>> parts = CSVLine(timeString, ' ').getColumns();
-	
+
 	Array<size_t> hours = cronValues(parts[0], 24);
 	Array<size_t> minutes = cronValues(parts[1], 60);
 
@@ -159,7 +162,7 @@ CSVGraph::~CSVGraph() {
 		{
 			delete[] nodes[i]->getEdges()[j];
 		}
-	delete[] nodes[i];
+		delete[] nodes[i];
 	}
 }
 

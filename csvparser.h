@@ -6,12 +6,13 @@
 #define CSVPARSER
 
 class FormatInvalid : public std::exception {
-	const char* file;
+	char* file;
 	size_t line;
 	size_t character;
 public:
 	FormatInvalid(const char file[] = NULL, size_t line = 0, size_t character = 0);
 	virtual const char* what() const throw();
+	virtual ~FormatInvalid();
 };
 
 class CSVLine {
@@ -50,8 +51,14 @@ class CSVParser {
 	//KELL HOGY TOBB FAJLT LEHESSEN KOMBINALNI
 	CSVParser* next;
 
+	bool beenOpened;
+
 	char* readLine();
+
+	void openFile();
 public:
+	CSVParser();
+
 	CSVParser(const char* filePath);
 
 	void write(CSVLine);
