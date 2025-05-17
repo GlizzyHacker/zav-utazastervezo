@@ -23,9 +23,9 @@ void CSVNode::operator+=(CSVEdge& edge) {
 
 CSVGraph::CSVGraph(CSVParser& csv) {
 	size_t line = 1;
+	size_t offset = 0;
 	Array<char> lastHeader;
 	Array<Time> lastTimes;
-	size_t offset;
 	CSVNode* lastNode = NULL;
 	Array<char> lastColumn1;
 	Array<char> lastColumn2;

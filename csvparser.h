@@ -11,6 +11,7 @@ class FormatInvalid : public std::exception {
 	size_t character;
 public:
 	FormatInvalid(const char file[] = NULL, size_t line = 0, size_t character = 0);
+	virtual const char* what() const throw();
 };
 
 class CSVLine {

@@ -92,7 +92,7 @@ Array<Node*> Graph::getNodes() const {
 Node* Graph::getNode(const char* name) const {
 	for (size_t i = 0; i < nodes.getLength(); i++)
 	{
-		if (strcmp(name, nodes[i]->getName()) == 0) {
+		if (std::string(nodes[i]->getName()).find(name) != std::string::npos) {
 			return (nodes[i]);
 		}
 	}

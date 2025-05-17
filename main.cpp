@@ -1,12 +1,23 @@
+//JPORTA GCC miatt
+#if __cpp_lib_filesystem >= 201703L
+#include <filesystem>
+namespace fs = std::filesystem;
+
+#else
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+
+#endif
 #include <cstring>
 #include <exception>
 #include <stdlib.h>
+#include "memtrace.h"
 #include "csvparser.h"
 #include "csvgraph.h"
 #include "graph.h"
 #include "agent.h"
 #include "time.h"
-#include "memtrace.h"
+#include "array.hpp"
 
 #ifndef CPORTA
 #ifndef TESTS
@@ -18,7 +29,7 @@ class MissingParameter : public std::exception {
 	}
 };
 
-bool isArgument(const char* input,const char arg, const char* argument) {
+bool isArgument(const char* input, const char arg, const char* argument) {
 	if (input[0] == '-') {
 		if (input[1] == '-') {
 			return strcmp(input + 2, argument) == 0;
@@ -30,12 +41,12 @@ bool isArgument(const char* input,const char arg, const char* argument) {
 
 int main(int argc, char* argv[]) {
 	//PARANCSSORI ARGUMENTUMOK FELDOLGOZASA
-	char* scheduleString = NULL;
-	char* startString = NULL;
-	char* destinationString = NULL;
-	char* timeString = NULL;
-	char* numResultString = NULL;
-	char* returnString = NULL;
+	const char* scheduleString = NULL;
+	const char* startString = NULL;
+	const char* destinationString = NULL;
+	const char* timeString = NULL;
+	const char* numResultString = NULL;
+	const char* returnString = NULL;
 
 	bool isQuiet = false;
 	bool isVerbose = false;
@@ -79,52 +90,86 @@ int main(int argc, char* argv[]) {
 			isForced = true;
 			continue;
 		}
-		else {
-			return 400;
-		}
 	}
 
-	//HIANYZO ADATOK BEKERESE
-
 	//ADATOK ATALAKITASA
-	int numResult = atoi(numResultString);
-	Time time = Time(timeString);
+	fs::path schedulePath(fs::current_path()/"schedules");
+	if (scheduleString != NULL) {
+		schedulePath = fs::path(scheduleString);
+	}
 
+	int numResult = 3;
+	if (numResultString != NULL) {
+		int numResult = atoi(numResultString);
+	}
+
+	Time time;
+	if (timeString != NULL) {
+		time = parseTime(timeString)[0];
+	}
+
+	Array<Array<char>> files;
 	//MENETREND FAJLOK BEOLVASASA
-	char** files;
-	int fileCount = 0;
-	CSVParser csvIn = CSVParser(files[0]);
+	for (fs::directory_entry entry : fs::directory_iterator( schedulePath)) {
+		char* arr = (char*)entry.path().c_str();
+		files += Array<char>(strlen(arr)+1,arr);
+
+	}
+	if (files.getLength() == 0) {
+		throw MissingParameter();
+	}
+	CSVParser csvIn(files[0]+0);
 
 	//FAJLOK KOMBINALASA EGY NAGY CSV FAJLBA
-	for (size_t i = 1; i < fileCount; i++) {
-		csvIn = csvIn + CSVParser(files[i]);
+	for (size_t i = 1; i < files.getLength(); i++) {
+		CSVParser parser(files[i]+0);
+		csvIn += parser;
 	}
 
 	//GRAF LETREHOZASA
-	Graph* graph = &CSVGraph(csvIn);
+	CSVGraph csvGraph(csvIn);
+	Graph* graph = &csvGraph;
 
 	//GRAF ADATOKAT CSAK A GRAF LETREHOZASA UTAN LEHET ATALAKITANI
+	if (startString == NULL) {
+		std::string str;
+		std::cout << "Kezdeo allomas:";
+		std::cin >> str;
+		if (str.empty()) {
+			throw MissingParameter();
+		}
+		startString = str.c_str();
+	}
+	if (destinationString == NULL) {
+		std::string str;
+		std::cout << "Vegallomas:";
+		std::cin >> str;
+		if (str.empty()) {
+			throw MissingParameter();
+		}
+		destinationString = str.c_str();
+	}
 	Node* start = graph->getNode(startString);
 	Node* destination = graph->getNode(destinationString);
 
 	//UTVONAL KERESES
-	Pathfinder* pathfinder = &AgentPathfinder(*graph, numResult);
-	Route* routes = pathfinder->getRoutes(start, destination, time);
-
-	//FAJLBA IRAS
-	if (returnString != NULL) {
-		CSVParser csvOut = CSVParser(returnString);
-		Route* current = routes;
-		while (routes->next != NULL) {
-			csvOut.write(writeRoute(*current));
-			current = routes->next;
-		}
-	}
+	AgentPathfinder agentPathfinder(*graph, numResult);
+	Pathfinder* pathfinder = &agentPathfinder;
+	Array<Route*> routes = pathfinder->getRoutes(*start, *destination, time);
 
 	//EREDMENY KIIRASA
 	if (!isQuiet) {
 
 	}
+
+	//FAJLBA IRAS
+	if (returnString != NULL) {
+		CSVParser csvOut(returnString);
+		for (size_t i = 0; i < routes.getLength(); i++) {
+			csvOut.write(writeRoute(*routes[i]));
+		}
+	}
+
 }
 #endif
 #endif

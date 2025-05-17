@@ -5,7 +5,14 @@
 #include "csvparser.h"
 #include "memtrace.h"
 
-FormatInvalid::FormatInvalid(const char file[], size_t line, size_t character) : file(file), line(line), character(character) {}
+FormatInvalid::FormatInvalid(const char file[], size_t line, size_t character) : file(file), line(line), character(character) {
+}
+const char* FormatInvalid::what() const throw()
+{
+	std::stringstream sstream;
+	sstream << "Helytelen formáutm fájl:" << file << " sor:" << line << "character: " << character;
+	return "Helytelen formátum";
+}
 
 Array<char> CSVLine::trim(const Array<char>& charArray) {
 	char* begin = charArray + 0;
