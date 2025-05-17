@@ -70,7 +70,7 @@ public:
 
 	Array<Node*> getNodes() const;
 
-	Node* getNode(const char* name) const;
+	Node* getNode(const char* name, bool exactMatch = false) const;
 };
 
 class Route {

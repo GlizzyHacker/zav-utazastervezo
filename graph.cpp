@@ -89,10 +89,13 @@ Array<Node*> Graph::getNodes() const {
 	return nodes;
 }
 
-Node* Graph::getNode(const char* name) const {
+Node* Graph::getNode(const char* name, bool exactMatch) const {
 	for (size_t i = 0; i < nodes.getLength(); i++)
 	{
-		if (std::string(nodes[i]->getName()).find(name) != std::string::npos) {
+		if (exactMatch && strcmp(name, nodes[i]->getName()) == 0) {
+			return (nodes[i]);
+		}
+		else if (!exactMatch && std::string(nodes[i]->getName()).find(name) != std::string::npos) {
 			return (nodes[i]);
 		}
 	}
