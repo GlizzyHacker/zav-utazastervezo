@@ -104,9 +104,20 @@ Array<size_t> cronValues(Array<char> string, size_t range) {
 		}
 	}
 	else {
-		throw FormatInvalid();
+		//REUSE THE SEPARATION ALGO FROM CSVLINE
+		Array<Array<char>> parts = CSVLine(string+0, ',').getColumns();
+		for (size_t i = 0; i < parts.getLength(); i++)
+		{
+			int number = atoi(parts[i]+0);
+			if ((number > 0) || parts[i][0] == '0') {
+				vals += (size_t)number;
+			}
+			else {
+				throw FormatInvalid();
+			}
+		}
 	}
-	//TODO: RANGE AND LIST SUPPORT
+	//TODO: RANGE SUPPORT
 	return vals;
 }
 
