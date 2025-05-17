@@ -131,8 +131,8 @@ int main() {
 	Edge complexEdge2 = Edge(&complexNodeStart, &complexNode2, 11, Time(8, 0), "edge2");
 	Edge complexEdge3 = Edge(&complexNodeStart, &complexNode3, 12, Time(9, 0), "edge3");
 	Edge complexEdge4 = Edge(&complexNode1, &complexNodeEnd, 15, Time(10, 10), "edge1");
-	Edge complexEdge5 = Edge(&complexNode2, &complexNodeEnd, 16, Time(10, 11), "edge2");
-	Edge complexEdge6 = Edge(&complexNode3, &complexNodeEnd, 17, Time(10, 12), "edge3");
+	Edge complexEdge5 = Edge(&complexNode2, &complexNodeEnd, 16, Time(8, 11), "edge2");
+	Edge complexEdge6 = Edge(&complexNode3, &complexNodeEnd, 17, Time(9, 12), "edge3");
 	complexNodeStart = Node(toArray(&complexEdge1, &complexEdge2, &complexEdge3), "nodeStart");
 	complexNode1 = Node(toArray(&complexEdge4), "node1");
 	complexNode2 = Node(toArray(&complexEdge5), "node2");
@@ -140,8 +140,8 @@ int main() {
 	complexNodeEnd = Node(Array<Edge*>(), "nodeEnd");
 	Array<Node*> complexNodes;
 	complexNodes += &complexNodeStart;
-	complexNodes += &complexNodeEnd;
 	complexNodes += &complexNode1;
+	complexNodes += &complexNodeEnd;
 	complexNodes += &complexNode2;
 	complexNodes += &complexNode3;
 	Graph complexTestGraph(complexNodes);
@@ -347,10 +347,6 @@ int main() {
 		EXPECT_STREQ("test23", line2.getColumns()[2] + 0);
 	} ENDM
 
-		TEST(CSV, read incorrect file) {
-
-	} ENDM
-
 		TEST(CSV, write simple) {
 		CSVParser csv1("testw.csv");
 
@@ -461,12 +457,24 @@ int main() {
 
 		TEST(Graph from csv, complex graph) {
 		std::ofstream CSV("testgc.csv");
-		CSV << "Test1,12 12" << std::endl;
-		CSV << "0" << std::endl;
+		CSV << "edge1,10 0" << std::endl;
+		CSV << "0,nodeStart" << std::endl;
+		CSV << "10,node1" << std::endl;
+		CSV << "25,nodeEnd" << std::endl;
+		CSV << "edge2,8 0" << std::endl;
+		CSV << "0,nodeStart" << std::endl;
+		CSV << "11,node2" << std::endl;
+		CSV << "27,nodeEnd" << std::endl;
+		CSV << "edge3,9 0" << std::endl;
+		CSV << "0,nodeStart" << std::endl;
+		CSV << "12,node3" << std::endl;
+		CSV << "29,nodeEnd" << std::endl;
 		CSV.close();
-		CSVParser csv("testgi.csv");
+		CSVParser csv("testgc.csv");
 
-		EXPECT_THROW(CSVGraph graph(csv), FormatInvalid);
+		CSVGraph graph(csv);
+
+		complexTestGraph == graph;
 	} ENDM
 
 		TEST(Graph from csv, incorrect format) {

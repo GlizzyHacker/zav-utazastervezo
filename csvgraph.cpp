@@ -39,7 +39,7 @@ CSVGraph::CSVGraph(CSVParser& csv) {
 			Array<char> column2 = newLine.getColumns()[1];
 			l() << " 2.Column:\"" << column2 + 0 << "\"";
 			int numCol1 = atoi(column1+0);
-			if (lastHeader.getLength() == 0) {
+			if ((lastHeader.getLength() == 0) || (numCol1 == 0 && column1[0] != '0')) {
 				l() << " New header";
 				lastHeader = column1;
 				offset = 0;
@@ -53,9 +53,18 @@ CSVGraph::CSVGraph(CSVParser& csv) {
 				}
 			}
 			else if ((column1.getLength() == 2 && column1[0] == '0') || numCol1 != 0) {
-				CSVNode* node = new CSVNode(column2 + 0);
-				operator+=(*node);
-				l() << " New node:"<<node->getName();
+				CSVNode* node = NULL;
+				try
+				{
+					node = (CSVNode*) getNode(column2 + 0, true);
+					l() << " Existing node:" << node->getName();
+				}
+				catch (const NotFound&)
+				{
+					node = new CSVNode(column2 + 0);
+					operator+=(*node);
+					l() << " New node:" << node->getName();
+				}
 				if (lastNode != NULL) {
 					offset += atoi(lastColumn1 + 0);
 
