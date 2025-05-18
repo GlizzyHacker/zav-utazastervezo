@@ -38,7 +38,7 @@ Array<char> CSVLine::trim(const Array<char>& charArray) {
 		end--;
 	}
 
-	return Array<char>((double)(end - begin + 1), begin);
+	return Array<char>((size_t)(end - begin + 1), begin);
 
 }
 
@@ -142,8 +142,6 @@ std::ostream& operator<<(std::ostream& os, const CSVLine& line) {
 // 
 //BEOLVAS EGY SORT A FAJLBOL CSTRINGKENT
 char* CSVParser::readLine() {
-	size_t limit = 0;
-	size_t len = 0;
 	Array<char> lineArray = Array<char>();
 
 	if (file.eof() && next != NULL) {
@@ -188,7 +186,7 @@ void CSVParser::openFile() {
 	beenOpened = true;
 }
 
-CSVParser::CSVParser(const char* filePath) : beenOpened(false), next(NULL) {
+CSVParser::CSVParser(const char* filePath) : next(NULL), beenOpened(false) {
 	path = new char[strlen(filePath) + 1];
 	strcpy(path, filePath);
 }

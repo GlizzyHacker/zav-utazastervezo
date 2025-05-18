@@ -55,12 +55,12 @@ public:
 	public:
 		Iterator(ListMember* member) : member(member) {}
 
-		Iterator& operator++(int i) {
+		Iterator& operator++(int) {
 			member = member->next;
 			return *this;
 		}
 
-		Iterator& operator--(int i) {
+		Iterator& operator--(int) {
 			member = member->prev;
 			return *this;
 		}
@@ -81,7 +81,7 @@ public:
 		}
 	};
 
-	SortedList() : length(0), list(NULL) {}
+	SortedList() : list(NULL), length(0) {}
 
 	size_t getLength() const {
 		return length;

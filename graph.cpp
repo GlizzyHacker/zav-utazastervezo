@@ -61,7 +61,7 @@ size_t Edge::getWeight() const {
 }
 
 size_t Edge::getWeight(Time currentTime) const {
-	int bestWeight  = 0;
+	size_t bestWeight  = 0;
 	for (size_t i = 0; i < startTimes.getLength(); i++)
 	{
 		if (bestWeight == 0 || bestWeight > (startTimes[i] - currentTime)) {
@@ -116,7 +116,7 @@ Node* Graph::getNode(const char* name, bool exactMatch) const {
 	throw NotFound();
 }
 
-Route::Route(Array<Edge*> edges, Time startTime) : edges(edges), startTime(startTime) {}
+Route::Route(Array<Edge*> edges, Time startTime) : startTime(startTime), edges(edges) {}
 
 Array<Edge*> Route::getEdges() const {
 	return edges;

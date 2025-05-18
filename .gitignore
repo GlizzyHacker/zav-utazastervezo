@@ -36,3 +36,7 @@
 /zav/Debug
 
 *.csv
+/.idea
+/cmake-build-debug-cygwin
+/cmake-build-debug
+/zav/x64/Release

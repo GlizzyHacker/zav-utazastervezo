@@ -1,5 +1,5 @@
 #include "graph.h"
-#include "sorted_list.hpp";
+#include "sorted_list.hpp"
 
 #ifndef PATHFINDER
 #define PATHFINDER

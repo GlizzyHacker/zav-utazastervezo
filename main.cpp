@@ -1,13 +1,5 @@
-//JPORTA GCC miatt
-#if __cpp_lib_filesystem >= 201703L
+
 #include <filesystem>
-namespace fs = std::filesystem;
-
-#else
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
-
-#endif
 #include <cstring>
 #include <exception>
 #include <stdlib.h>
@@ -24,6 +16,8 @@ namespace fs = std::experimental::filesystem;
 
 #ifndef CPORTA
 #ifndef TESTS
+
+namespace fs = std::filesystem;
 
 class MissingParameter : public std::exception {
 	virtual const char* what() const throw()
@@ -108,9 +102,9 @@ int main(int argc, char* argv[]) {
 		schedulePath = fs::path(scheduleString);
 	}
 
-	int numResult = 3;
+	size_t numResult = 3;
 	if (numResultString != NULL) {
-		int numResult = atoi(numResultString);
+		numResult = (size_t) atoi(numResultString);
 	}
 
 	Time time;
@@ -182,7 +176,7 @@ int main(int argc, char* argv[]) {
 
 	//EREDMENY KIIRASA
 	if (!isQuiet) {
-		int i = 1;
+		size_t i = 1;
 		for (SortedList<Route*>::Iterator routeIter = routes.begin(), routeEnd = routes.end(); routeIter != routeEnd; routeIter++) {
 			//Kertnel tobbet nem mutat
 			if (i >= numResult) {

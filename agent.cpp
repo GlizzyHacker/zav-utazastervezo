@@ -21,7 +21,7 @@ Agent::Agent(Edge& edge, const Node& start, const Node& target, Time startTime) 
 
 Agent::Agent(const Agent& other, Edge* edge) : Route(other.edges, other.getStartTime()), start(other.start), target(other.target) {
 	if (edge != NULL) {
-		//Lecseréli az utolsó élt az adottra
+		//Lecsereli az utolso elt az adottra
 		edges = Array<Edge*>(edges.getLength() - 1, edges + 0);
 		edges += edge;
 	}
@@ -31,7 +31,7 @@ AgentState Agent::step() {
 	l() << "Inspecting edge:" << ID(edges.last()) << edges.last()->getName() << ", ";
 	for (size_t i = 0; i < edges.getLength() - 1; i++)
 	{
-		//KÖR
+		//Kï¿½R
 		if (edges[i]->getToNode() == head() || start == head()) {
 			return terminated;
 		}
@@ -44,7 +44,7 @@ AgentState Agent::step() {
 		{
 			edges += (head()->getEdges()[0]);
 		}
-		//Zsákutca
+		//Zsakutca
 		catch (const std::out_of_range&)
 		{
 			return terminated;
@@ -57,10 +57,10 @@ const Node* Agent::head() const {
 	return ((edges.getLength() == 0) ? start : edges.last()->getToNode());
 }
 
-AgentPathfinder::AgentPathfinder(Graph graph, size_t numResult) : agents(SortedList<Agent*, alwaysFirst<Agent*>>()), Pathfinder(graph, numResult) {}
+AgentPathfinder::AgentPathfinder(Graph graph, size_t numResult) : Pathfinder(graph, numResult), agents(SortedList<Agent*, alwaysFirst<Agent*>>()) {}
 
 SortedList<Route*> AgentPathfinder::getRoutes(const Node& from, const Node& to, Time startTime) {
-	//HIBÁT DOB HA FROM ÉS TO NINCS A GRÁFBAN
+	//HIBï¿½T DOB HA FROM ï¿½S TO NINCS A GRï¿½FBAN
 	graph.getNode(from.getName());
 	graph.getNode(to.getName());
 

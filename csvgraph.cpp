@@ -75,7 +75,7 @@ CSVGraph::CSVGraph(CSVParser& csv) {
 					for (size_t i = 0; i < lastTimes.getLength(); i++)
 					{
 						Time time = lastTimes[i];
-						time += atoi(lastColumn1 + 0);
+						time += (size_t) atoi(lastColumn1 + 0);
 						newTimes += time;
 					}
 					CSVEdge* edge = new CSVEdge(numCol1 - atoi(lastColumn1 + 0), newTimes, lastHeader + 0);

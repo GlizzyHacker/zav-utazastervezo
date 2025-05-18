@@ -34,7 +34,7 @@ protected:
 	
 	Node* to;
 
-	int weight;
+	size_t weight;
 	
 	Array<Time> startTimes;
 	
