@@ -1,6 +1,7 @@
 #include "pathfinder.h"
 #include "graph.h"
 #include "array.hpp"
+#include "sorted_list.hpp"
 
 #ifndef AGENT
 #define AGENT
@@ -16,7 +17,7 @@ class Agent : public Route {
 	const Node* start;
 	const Node* target;
 public:
-	Agent(Edge& edge, const Node& start, const Node& target);
+	Agent(Edge& edge, const Node& start, const Node& target, Time startTime);
 	
 	Agent(const Agent&, Edge* firstEdge = NULL);
 	
@@ -26,19 +27,19 @@ public:
 };
 
 class AgentPathfinder : public Pathfinder {
-	Array<Agent*> agents;
+	//Mindig a lista legelejere kerulnek az uj agentek, hogy gyorsabb legyen
+	SortedList<Agent*, alwaysFirst<Agent*>> agents;
 
-	Array<bool> agentsActive;
+	Array<Agent*> agentsToDelete;
 
-	void splitAgent(const Agent&, size_t startEdge = 1); 
+	void splitAgent(const Agent&, Time startTime, size_t startEdge = 1); 
+	//ITERALAS kozben nem lehet torolni
+	void deleteAgent(Agent*);
 	
-	void deleteAgent(size_t i);
-	
-	size_t activeAgents();
 public:
 	AgentPathfinder(Graph graph, size_t numRoutes = 3);
 
-	Array<Route*> getRoutes(const Node& from, const Node& to, Time starTime);
+	SortedList<Route*> getRoutes(const Node& from, const Node& to, Time starTime);
 
 	~AgentPathfinder();
 };

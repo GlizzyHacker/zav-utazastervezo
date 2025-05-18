@@ -11,6 +11,8 @@ namespace fs = std::experimental::filesystem;
 #include <cstring>
 #include <exception>
 #include <stdlib.h>
+#include <iostream>
+#include <string>
 #include "memtrace.h"
 #include "csvparser.h"
 #include "csvgraph.h"
@@ -18,6 +20,7 @@ namespace fs = std::experimental::filesystem;
 #include "agent.h"
 #include "time.h"
 #include "array.hpp"
+#include "log.hpp"
 
 #ifndef CPORTA
 #ifndef TESTS
@@ -25,7 +28,7 @@ namespace fs = std::experimental::filesystem;
 class MissingParameter : public std::exception {
 	virtual const char* what() const throw()
 	{
-		return "Fontos paraméter hiányzik";
+		return "Fontos parameter hianyzik";
 	}
 };
 
@@ -40,11 +43,12 @@ bool isArgument(const char* input, const char arg, const char* argument) {
 }
 
 int main(int argc, char* argv[]) {
+
 	//PARANCSSORI ARGUMENTUMOK FELDOLGOZASA
 	const char* scheduleString = NULL;
-	const char* startString = NULL;
-	const char* destinationString = NULL;
-	const char* timeString = NULL;
+	std::string startString;
+	std::string destinationString;
+	std::string timeString;
 	const char* numResultString = NULL;
 	const char* returnString = NULL;
 
@@ -52,7 +56,7 @@ int main(int argc, char* argv[]) {
 	bool isVerbose = false;
 	bool isForced = false;
 
-	for (size_t i = 0; i < argc; i++)
+	for (int i = 0; i < argc; i++)
 	{
 		if (isArgument(argv[i], 'F', "schedule")) {
 			scheduleString = argv[++i];
@@ -92,6 +96,12 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+	//NEM MEGADOTT ADATOK BEKERESE
+	if (timeString.empty() && !isForced) {
+		std::cout << "Indulas ideje:";
+		std::getline(std::cin, timeString);
+	}
+
 	//ADATOK ATALAKITASA
 	fs::path schedulePath(fs::current_path()/"schedules");
 	if (scheduleString != NULL) {
@@ -104,26 +114,36 @@ int main(int argc, char* argv[]) {
 	}
 
 	Time time;
-	if (timeString != NULL) {
-		time = parseTime(timeString)[0];
+	if (!timeString.empty()) {
+		time = parseTime(timeString.c_str())[0];
 	}
 
-	Array<Array<char>> files;
-	//MENETREND FAJLOK BEOLVASASA
-	for (fs::directory_entry entry : fs::directory_iterator( schedulePath)) {
-		char* arr = (char*)entry.path().c_str();
-		files += Array<char>(strlen(arr)+1,arr);
+	if (isVerbose) {
+		writeLog = true;
+	}
 
+	//MENETREND FAJLOK BEOLVASASA
+	Array<Array<char>> files;
+	for (fs::directory_entry entry : fs::directory_iterator( schedulePath)) {
+		std::string str = entry.path().string();
+		files += Array<char>(str.length()+1, str.c_str());
 	}
 	if (files.getLength() == 0) {
 		throw MissingParameter();
 	}
-	CSVParser csvIn(files[0]+0);
+
+	std::cout << "Menetrend betoltese " << files.getLength() << " fajlbol" << std::endl;
 
 	//FAJLOK KOMBINALASA EGY NAGY CSV FAJLBA
+	CSVParser csvIn(files[0] + 0);
 	for (size_t i = 1; i < files.getLength(); i++) {
-		CSVParser parser(files[i]+0);
-		csvIn += parser;
+		try {
+			CSVParser* parser = new CSVParser(files[i]+0);
+			csvIn += *parser;
+		}
+		catch (const FormatInvalid& e) {
+			std::cout << "Error reading "<< i <<". file:" << files[i]+0<<":"<< e.what() << std::endl;
+		}
 	}
 
 	//GRAF LETREHOZASA
@@ -131,45 +151,88 @@ int main(int argc, char* argv[]) {
 	Graph* graph = &csvGraph;
 
 	//GRAF ADATOKAT CSAK A GRAF LETREHOZASA UTAN LEHET ATALAKITANI
-	if (startString == NULL) {
-		std::string str;
-		std::cout << "Kezdeo allomas:";
-		std::cin >> str;
-		if (str.empty()) {
+	test:
+	if (startString.empty()) {
+		if (!isForced) {
+			std::cout << "Kezdo allomas:";
+			std::getline(std::cin, startString);
+		}
+		if (startString.empty()) {
 			throw MissingParameter();
 		}
-		startString = str.c_str();
 	}
-	if (destinationString == NULL) {
-		std::string str;
-		std::cout << "Vegallomas:";
-		std::cin >> str;
-		if (str.empty()) {
+	if (destinationString.empty()) {
+		if (!isForced) {
+			std::cout << "Vegallomas:";
+			std::getline(std::cin, destinationString);
+		}
+		if (destinationString.empty()) {
 			throw MissingParameter();
 		}
-		destinationString = str.c_str();
 	}
-	Node* start = graph->getNode(startString);
-	Node* destination = graph->getNode(destinationString);
+	Node* start = graph->getNode(startString.c_str());
+	Node* destination = graph->getNode(destinationString.c_str());
+	std::cout << start->getName() << " --> " << destination->getName() << std::endl;
 
 	//UTVONAL KERESES
+	std::cout << "Utvonalak keresese" << std::endl;
 	AgentPathfinder agentPathfinder(*graph, numResult);
 	Pathfinder* pathfinder = &agentPathfinder;
-	Array<Route*> routes = pathfinder->getRoutes(*start, *destination, time);
+	SortedList<Route*> routes = pathfinder->getRoutes(*start, *destination, time);
 
 	//EREDMENY KIIRASA
 	if (!isQuiet) {
+		int i = 1;
+		for (SortedList<Route*>::Iterator routeIter = routes.begin(), routeEnd = routes.end(); routeIter != routeEnd; routeIter++) {
+			//Kertnel tobbet nem mutat
+			if (i >= numResult) {
+				break;
+			}
+			Array<Edge*> edges = (*routeIter)->getEdges();
+			Edge* nextEdge = NULL;
+			Edge* firstSameEdge = NULL;
+			int sameEdgeCount = 1;
+			Time arrivalTime = (*routeIter)->getEdges()[0]->getFirstStartTimeAfter((*routeIter)->getStartTime()); 
+			Time departureTime;
 
+			std::cout << i << ". utvonal " << (*routeIter)->getTotalWeight() - (arrivalTime - time) << " perc" << std::endl;
+			std::cout << start->getName() << " [" << arrivalTime << "]" << std::endl;
+			for (size_t j = 0; j < edges.getLength(); j++)
+			{
+				if (firstSameEdge == NULL) {
+					departureTime = arrivalTime;
+					firstSameEdge = edges[j];
+				}
+				arrivalTime += edges[j]->getWeight(arrivalTime);
+				nextEdge = edges.getLength() == j + 1 ? NULL : edges[j + 1];
+				int wait = nextEdge ? nextEdge->getFirstStartTimeAfter(arrivalTime) - arrivalTime : 0;
+				if (nextEdge && strcmp(nextEdge->getName(), edges[j]->getName()) == 0 && wait == 0) {
+					sameEdgeCount++;
+				}
+				else {
+					std::cout << "| " << edges[j]->getName() << std::endl << "| indulas:" << firstSameEdge->getFirstStartTimeAfter(departureTime) << " " << edges[j]->getWeight(firstSameEdge->getFirstStartTimeAfter(arrivalTime)) << " perc " << sameEdgeCount << " megallo" << std::endl << edges[j]->getToNode()->getName() << " [" << arrivalTime << "]";
+					if (nextEdge) {
+						std::cout << " varjon " << wait << " percet";
+					}
+					std::cout << std::endl;
+					sameEdgeCount = 1;
+					firstSameEdge = NULL;
+				}
+			}
+			i++;
+		}
 	}
 
 	//FAJLBA IRAS
 	if (returnString != NULL) {
 		CSVParser csvOut(returnString);
-		for (size_t i = 0; i < routes.getLength(); i++) {
-			csvOut.write(writeRoute(*routes[i]));
+		for (SortedList<Route*>::Iterator routeIter = routes.begin(), routeEnd = routes.end(); routeIter != routeEnd; routeIter++) {
+			csvOut.write(writeRoute(**routeIter));
 		}
 	}
-
+	destinationString.clear();
+	startString.clear();
+	goto test;
 }
 #endif
 #endif

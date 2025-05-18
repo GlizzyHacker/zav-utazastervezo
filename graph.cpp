@@ -34,7 +34,7 @@ Node::~Node() {
 	delete[] name;
 }
 
-Edge::Edge(Node* from, Node* to, int weight, Time startTime, const char* newName) : from(from), to(to), weight(weight), startTime(startTime){
+Edge::Edge(Node* from, Node* to, int weight, Array<Time> startTimes, const char* newName) : from(from), to(to), weight(weight), startTimes(startTimes){
 	name = new char[strlen(newName) + 1];
 	strcpy(name, newName);
 }
@@ -45,8 +45,15 @@ const char* Edge::getName() const {
 	return name;
 }
 
-Time Edge::getStartTime() const {
-	return startTime;
+Time Edge::getFirstStartTimeAfter(Time after) const {
+	Time closest = startTimes[0];
+	for (size_t i = 1; i < startTimes.getLength(); i++)
+	{
+		if (startTimes[i] - after < closest - after) {
+			closest = startTimes[i];
+		}
+	}
+	return closest;
 }
 
 size_t Edge::getWeight() const {
@@ -54,7 +61,14 @@ size_t Edge::getWeight() const {
 }
 
 size_t Edge::getWeight(Time currentTime) const {
-	return weight + (startTime-currentTime);
+	int bestWeight  = 0;
+	for (size_t i = 0; i < startTimes.getLength(); i++)
+	{
+		if (bestWeight == 0 || bestWeight > (startTimes[i] - currentTime)) {
+			bestWeight = weight + (startTimes[i] - currentTime);
+		}
+	}
+	return bestWeight;
 }
 
 Node* Edge::getToNode() const {
@@ -73,7 +87,7 @@ Edge& Edge::operator=(const Edge& other) {
 	from = other.from;
 	to = other.to;
 	weight = other.weight;
-	startTime = other.startTime;
+	startTimes = other.startTimes;
 	return *this;
 }
 
@@ -102,14 +116,18 @@ Node* Graph::getNode(const char* name, bool exactMatch) const {
 	throw NotFound();
 }
 
-Route::Route(Array<Edge*> edges) : edges(edges) {}
+Route::Route(Array<Edge*> edges, Time startTime) : edges(edges), startTime(startTime) {}
 
 Array<Edge*> Route::getEdges() const {
 	return edges;
 }
 
-size_t Route::getTotalWeight(Time startTime) const {
-	Time time = Time(startTime);
+Time Route::getStartTime() const {
+	return startTime;
+}
+
+size_t Route::getTotalWeight() const {
+	Time time = Time(edges[0]->getFirstStartTimeAfter(startTime));
 	for (size_t i = 0; i < edges.getLength(); i++)
 	{
 		 time += edges[i]->getWeight(time);

@@ -8,7 +8,7 @@ class CSVNode;
 
 class CSVEdge : public Edge {
 public:
-	CSVEdge(int weight, Time startTime, const char* name);
+	CSVEdge(int weight, Array<Time> startTimes, const char* name);
 
 	void operator+=(CSVNode& node);
 };

@@ -4,7 +4,7 @@
 #include "csvgraph.h"
 #include "log.hpp"
 
-CSVEdge::CSVEdge(int weight, Time startTime, const char* name) : Edge(NULL, NULL, weight, startTime, name) {}
+CSVEdge::CSVEdge(int weight, Array<Time> startTimes, const char* name) : Edge(NULL, NULL, weight, startTimes, name) {}
 
 void CSVEdge::operator+=(CSVNode& node) {
 	if (from == NULL) {
@@ -71,16 +71,17 @@ CSVGraph::CSVGraph(CSVParser& csv) {
 					l() << "--New node:" << node->getName() << std::endl;
 				}
 				if (lastNode != NULL) {
-
+					Array<Time> newTimes;
 					for (size_t i = 0; i < lastTimes.getLength(); i++)
 					{
 						Time time = lastTimes[i];
-						time += atoi(lastColumn1+0);
-						CSVEdge* edge = new CSVEdge(numCol1 - atoi(lastColumn1 + 0), time, lastHeader + 0);
-						*lastNode += *edge;
-						*edge += *node;
-						l() << "--New edge:" << time << ID(edge) << edge->getName() << std::endl;
+						time += atoi(lastColumn1 + 0);
+						newTimes += time;
 					}
+					CSVEdge* edge = new CSVEdge(numCol1 - atoi(lastColumn1 + 0), newTimes, lastHeader + 0);
+					*lastNode += *edge;
+					*edge += *node;
+					l() << "--New edge:" << time << ID(edge) << edge->getName() << std::endl;
 				}
 				lastNode = node;
 
@@ -169,11 +170,13 @@ CSVGraph::~CSVGraph() {
 CSVLine writeRoute(Route& route) {
 	CSVLine newLine;
 	Array<Edge*> edges = route.getEdges();
-	newLine += route.getTotalWeight(edges[0]->getStartTime());
+	newLine += route.getTotalWeight();
+	Time time = route.getStartTime();
 	for (size_t i = 0; i < edges.getLength(); i++)
 	{
 		std::stringstream timeStream;
-		timeStream << edges[i]->getStartTime();
+		timeStream << edges[i]->getFirstStartTimeAfter(time);
+		time += edges[i]->getWeight(time);
 		newLine += timeStream.str().c_str();
 		newLine += edges[i]->getName();
 		newLine += edges[i]->getWeight();

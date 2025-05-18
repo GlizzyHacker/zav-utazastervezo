@@ -5,12 +5,24 @@
 #define SORTEDLIST
 
 template<typename T>
-class isLessThan {
+class alwaysFirst {
+public:
+	bool operator()(T t1, T t2) { return false; }
+};
+
+template<typename T>
+class descending {
+public:
+	bool operator()(T t1, T t2) { return t1 > t2; }
+};
+
+template<typename T>
+class ascending {
 public:
 	bool operator()(T t1, T t2) { return t1 < t2; }
 };
 
-template<typename T, typename compare = isLessThan<T>>
+template<typename T, typename compare = ascending<T>>
 class SortedList {
 
 	class ListMember {
@@ -79,7 +91,18 @@ public:
 		ListMember* ptr = list;
 		while (ptr != NULL) {
 			if (ptr->element == element) {
-				ptr->prev->next = ptr->next;
+				if (ptr->next) {
+					ptr->next->prev = ptr->prev;
+				}
+				else {
+					ptr->prev = NULL;
+				}
+				if (ptr->prev) {
+					ptr->prev->next = ptr->next;
+				}
+				else {
+					list = ptr->next;
+				}
 				delete ptr;
 				length--;
 				return;
@@ -93,7 +116,12 @@ public:
 		for (size_t i = 0; i < at; i++) {
 			ptr = ptr->next;
 		}
-		ptr->prev->next = ptr->next;
+		if (ptr->prev) {
+			ptr->prev->next = ptr->next;
+		}
+		else {
+			list = ptr->next;
+		}
 		delete ptr;
 		length--;
 	}

@@ -3,19 +3,21 @@
 #include <sstream>
 
 #include "array.hpp"
+#include "sorted_list.hpp"
 #include "csvparser.h"
 #include "csvgraph.h"
 #include "memtrace.h"
-#include "gtest_lite.h"
 #include "time.h"
 #include "graph.h"
 #include "agent.h"
+#include "log.hpp"
 
 #ifdef CPORTA
 #define TESTS
 #endif
 
 #ifdef TESTS
+#include "gtest_lite.h"
 
 //HACK: TOO LAZY TO IMPLEMENT VARIADIC FUNCTION
 template<typename T>
@@ -52,7 +54,7 @@ bool operator==(const Edge& edge1, const Edge& edge2) {
 
 	EXPECT_STREQ(edge1.getToNode()->getName(), edge2.getToNode()->getName());
 
-	EXPECT_EQ(edge1.getStartTime(), edge2.getStartTime());
+	EXPECT_EQ(edge1.getFirstStartTimeAfter(Time()), edge2.getFirstStartTimeAfter(Time()));
 
 	EXPECT_EQ(edge1.getWeight(Time(0, 0)), edge2.getWeight(Time(0, 0)));
 
@@ -104,12 +106,14 @@ bool isArgument(const char* input, const char arg, const char* argument) {
 	return false;
 }
 int main() {
+	writeLog = true;
+
 	//SIMPLE TEST OBJECTS
 	Node simpleNode1;
 	Node simpleNode2;
 	Node simpleNode3;
-	Edge simpleEdge1 = Edge(&simpleNode1, &simpleNode2, 10, Time(10, 0), "edge");
-	Edge simpleEdge2 = Edge(&simpleNode2, &simpleNode3, 20, Time(10, 10), "edge");
+	Edge simpleEdge1 = Edge(&simpleNode1, &simpleNode2, 10, toArray(Time(10, 0)), "edge");
+	Edge simpleEdge2 = Edge(&simpleNode2, &simpleNode3, 20, toArray(Time(10, 10)), "edge");
 	Array<Edge*> edges1;
 	edges1 += &simpleEdge1;
 	Array<Edge*> edges2;
@@ -119,7 +123,7 @@ int main() {
 	simpleNode3 = Node(Array<Edge*>(), "name3");
 	Graph simpleTestGraph(toArray<Node*>(&simpleNode1, &simpleNode2, &simpleNode3));
 	
-	Route SimpleTestRoute(toArray<Edge*>(&simpleEdge1, &simpleEdge2));
+	Route SimpleTestRoute(toArray<Edge*>(&simpleEdge1, &simpleEdge2), Time(10,0));
 
 	//COMPLEX TEST OBJECTS
 	Node complexNodeStart;
@@ -127,12 +131,12 @@ int main() {
 	Node complexNode1;
 	Node complexNode2;
 	Node complexNode3;
-	Edge complexEdge1 = Edge(&complexNodeStart, &complexNode1, 10, Time(10, 0), "edge1");
-	Edge complexEdge2 = Edge(&complexNodeStart, &complexNode2, 11, Time(8, 0), "edge2");
-	Edge complexEdge3 = Edge(&complexNodeStart, &complexNode3, 12, Time(9, 0), "edge3");
-	Edge complexEdge4 = Edge(&complexNode1, &complexNodeEnd, 15, Time(10, 10), "edge1");
-	Edge complexEdge5 = Edge(&complexNode2, &complexNodeEnd, 16, Time(8, 11), "edge2");
-	Edge complexEdge6 = Edge(&complexNode3, &complexNodeEnd, 17, Time(9, 12), "edge3");
+	Edge complexEdge1 = Edge(&complexNodeStart, &complexNode1, 10, toArray(Time(10, 0)), "edge1");
+	Edge complexEdge2 = Edge(&complexNodeStart, &complexNode2, 11, toArray(Time(8, 0)), "edge2");
+	Edge complexEdge3 = Edge(&complexNodeStart, &complexNode3, 12, toArray(Time(9, 0)), "edge3");
+	Edge complexEdge4 = Edge(&complexNode1, &complexNodeEnd, 15, toArray(Time(10, 10)), "edge1");
+	Edge complexEdge5 = Edge(&complexNode2, &complexNodeEnd, 16, toArray(Time(8, 11)), "edge2");
+	Edge complexEdge6 = Edge(&complexNode3, &complexNodeEnd, 17, toArray(Time(9, 12)), "edge3");
 	complexNodeStart = Node(toArray(&complexEdge1, &complexEdge2, &complexEdge3), "nodeStart");
 	complexNode1 = Node(toArray(&complexEdge4), "node1");
 	complexNode2 = Node(toArray(&complexEdge5), "node2");
@@ -146,9 +150,9 @@ int main() {
 	complexNodes += &complexNode3;
 	Graph complexTestGraph(complexNodes);
 
-	Route ComplexTestRoute1(toArray(&complexEdge1, &complexEdge4));
-	Route ComplexTestRoute2(toArray(&complexEdge2, &complexEdge5));
-	Route ComplexTestRoute3(toArray(&complexEdge3, &complexEdge6));
+	Route ComplexTestRoute1(toArray(&complexEdge1, &complexEdge4), Time(10,0));
+	Route ComplexTestRoute2(toArray(&complexEdge2, &complexEdge5), Time(8, 11));
+	Route ComplexTestRoute3(toArray(&complexEdge3, &complexEdge6), Time(9, 12));
 
 	TEST(Array, operators) {
 		int tmp[1];
@@ -173,6 +177,50 @@ int main() {
 		EXPECT_EQ(1, array3[1]);
 		EXPECT_EQ(2, array3.getLength());
 
+	} ENDM
+
+		TEST(Sorted list, build) {
+		SortedList<int> list;
+
+		list += 0;
+		list += 1;
+		list += 2;
+		list += 6;
+		list += 4;
+		list += 3;
+		list += 5;
+
+		int i = 0;
+		for (SortedList<int>::Iterator begin = list.begin(); begin != list.end(); begin++)
+		{
+			EXPECT_EQ(i, *begin);
+			i++;
+		}
+		EXPECT_EQ(7, list.getLength());
+		
+	} ENDM
+
+		TEST(Sorted list, deletes) {
+		SortedList<int> list;
+		list += 0;
+		list += 1;
+		list += 2;
+		list += 3;
+
+		list.removeAt(0);
+		
+		SortedList<int>::Iterator iter1 = list.begin();
+		EXPECT_EQ(1, *iter1);
+		EXPECT_EQ(2, *(iter1++));
+		EXPECT_EQ(3, *(iter1++));
+		EXPECT_EQ(3, list.getLength());
+
+		list.remove(2);
+
+		SortedList<int>::Iterator iter2 = list.begin();
+		EXPECT_EQ(1, *iter2);
+		EXPECT_EQ(3, *(iter2++));
+		EXPECT_EQ(2, list.getLength());
 	} ENDM
 
 		TEST(Time, print) {
@@ -215,7 +263,7 @@ int main() {
 
 		TEST(Graph, edge weight) {
 		Node n1, n2;
-		Edge e(&n1, &n2, 20, Time(10, 0), "test");
+		Edge e(&n1, &n2, 20, toArray(Time(10, 0)), "test");
 
 		EXPECT_EQ(0 + 20, e.getWeight(Time(10, 0)));
 		EXPECT_EQ(1439 + 20, e.getWeight(Time(10, 1)));
@@ -248,16 +296,16 @@ int main() {
 		Node node2(Array<Edge*>(), "name2");
 		Node node3(Array<Edge*>(), "name3");
 		Node node4(Array<Edge*>(), "name4");
-		Edge edge1 = Edge(&node1, &node2, 10, Time(10, 0), "name1");
-		Edge edge2 = Edge(&node2, &node3, 20, Time(12, 40), "name2");
-		Edge edge3 = Edge(&node3, &node4, 100, Time(9, 0), "name3");
+		Edge edge1 = Edge(&node1, &node2, 10, toArray(Time(10, 0)), "name1");
+		Edge edge2 = Edge(&node2, &node3, 20, toArray(Time(12, 40)), "name2");
+		Edge edge3 = Edge(&node3, &node4, 100, toArray(Time(9, 0)), "name3");
 		Array<Edge*> edges;
 		edges += &edge1;
 		edges += &edge2;
 		edges += &edge3;
-		Route route(edges);
+		Route route(edges, Time(9,50));
 
-		size_t weight = route.getTotalWeight(Time(9, 50));
+		size_t weight = route.getTotalWeight();
 
 		EXPECT_EQ(1440 + 50, weight);
 
@@ -333,9 +381,9 @@ int main() {
 		CSV1.close();
 		CSV2.close();
 		CSVParser csv1("testra1.csv");
-		CSVParser csv2("testra2.csv");
+		CSVParser* csv2 = new CSVParser("testra2.csv");
 
-		csv1 += (csv2);
+		csv1 += (*csv2);
 		CSVLine line1 = csv1.read();
 		CSVLine line2 = csv1.read();
 
@@ -348,11 +396,11 @@ int main() {
 	} ENDM
 
 		TEST(CSV, write simple) {
-		CSVParser csv1("testw.csv");
+		CSVParser csv1("testws.csv");
 
 		csv1.write(CSVLine("test"));
 
-		std::ifstream CSV("testw.csv");
+		std::ifstream CSV("testws.csv");
 		char line[100];
 		CSV >> line;
 		EXPECT_STREQ("test", line);
@@ -361,12 +409,12 @@ int main() {
 	} ENDM
 
 		TEST(CSV, write multiple) {
-		CSVParser csv1("testw.csv");
+		CSVParser csv1("testwc.csv");
 
 		csv1.write(CSVLine("test1,test2,test3"));
 		csv1.write(CSVLine("test11,test22,test33"));
 
-		std::ifstream CSV("testw.csv");
+		std::ifstream CSV("testwc.csv");
 		char line1[100];
 		char line2[100];
 		CSV >> line1;
@@ -378,7 +426,7 @@ int main() {
 
 		TEST(Node from csv, edge addition) {
 		CSVNode node("node1");
-		CSVEdge edge(10, Time(12, 12), "edge1");
+		CSVEdge edge(10, toArray(Time(12, 12)), "edge1");
 
 		node += edge;
 
@@ -387,7 +435,7 @@ int main() {
 
 		TEST(Edge from csv, node addition) {
 		CSVNode node1("node1");
-		CSVEdge edge(10, Time(12, 12), "edge1");
+		CSVEdge edge(10, toArray(Time(12, 12)), "edge1");
 		CSVNode node2("node1");
 
 		node1 += edge;
@@ -414,10 +462,9 @@ int main() {
 	} ENDM
 		TEST(Cron from csv, cron list) {
 		Array<Time> times = parseTime("1,2,3 0");
-		for (size_t i = 0; i < 24; i++)
 		times[0] == Time(1, 0);
-		times[0] == Time(2, 0);
-		times[0] == Time(3, 0);
+		times[1] == Time(2, 0);
+		times[2] == Time(3, 0);
 	} ENDM
 
 		TEST(Cron from csv, cron exception) {
@@ -508,13 +555,13 @@ int main() {
 		Node node2;
 		Node node3;
 		Node node4;
-		Edge edge1 = Edge(&node1, &node2, 10, Time(10, 0), "name1");
-		Edge edge2 = Edge(&node2, &node3, 20, Time(12, 40), "name2");
+		Edge edge1 = Edge(&node1, &node2, 10, toArray(Time(10, 0)), "name1");
+		Edge edge2 = Edge(&node2, &node3, 20, toArray(Time(12, 40)), "name2");
 		node1 = Node(toArray(&edge1), "name1");
 		node2 = Node(toArray(&edge2), "name2");
 		node3 = Node(Array<Edge*>(), "name3");
 
-		Agent agent(edge1, node1, node3);
+		Agent agent(edge1, node1, node3, Time());
 
 		EXPECT_EQ(moved, agent.step());
 		EXPECT_EQ(&edge2, agent.getEdges()[1]);
@@ -526,20 +573,20 @@ int main() {
 		Node node2;
 		Node node3;
 		Node node4;
-		Edge edge1 = Edge(&node1, &node2, 10, Time(10, 0), "name1");
-		Edge edge2 = Edge(&node3, &node4, 20, Time(12, 40), "name2");
-		Edge edge3 = Edge(&node4, &node3, 20, Time(12, 40), "name3");
+		Edge edge1 = Edge(&node1, &node2, 10, toArray(Time(10, 0)), "name1");
+		Edge edge2 = Edge(&node3, &node4, 20, toArray(Time(12, 40)), "name2");
+		Edge edge3 = Edge(&node4, &node3, 20, toArray(Time(12, 40)), "name3");
 		node1 = Node(toArray(&edge1), "name1");
 		node2 = Node(Array<Edge*>(), "name2");
 		node3 = Node(toArray(&edge2), "name3");
 		node4 = Node(toArray(&edge3), "name4");
 
 		//ZSÁKUTCA
-		Agent agent1(edge1, node1, node1);
+		Agent agent1(edge1, node1, node1, Time());
 		EXPECT_EQ(terminated, agent1.step());
 
 		//KÖR
-		Agent agent2(edge3, node4, node1);
+		Agent agent2(edge3, node4, node1, Time());
 		agent2.step();
 
 		EXPECT_EQ(terminated, agent2.step());
@@ -548,12 +595,12 @@ int main() {
 		TEST(Agent, arrived state) {
 		Node node1;
 		Node node2;
-		Edge edge1 = Edge(&node1, &node2, 10, Time(10, 0), "name1");
-		Edge edge2 = Edge(&node2, &node1, 20, Time(12, 40), "name2");
+		Edge edge1 = Edge(&node1, &node2, 10, toArray(Time(10, 0)), "name1");
+		Edge edge2 = Edge(&node2, &node1, 20, toArray(Time(12, 40)), "name2");
 		node1 = Node(toArray(&edge1), "name1");
 		node2 = Node(Array<Edge*>(), "name2");
 
-		Agent agent(edge1, node1, node2);
+		Agent agent(edge1, node1, node2, Time());
 
 		EXPECT_EQ(arrived, agent.step());
 	} ENDM
@@ -561,30 +608,30 @@ int main() {
 		TEST(Agent pathfinder, simple) {
 		AgentPathfinder pathfinder(simpleTestGraph, 1);
 
-		Array<Route*> routes = pathfinder.getRoutes(simpleNode1, simpleNode3, Time(0, 0));
+		SortedList<Route*> routes = pathfinder.getRoutes(simpleNode1, simpleNode3, Time(0, 0));
 
 		EXPECT_EQ(1, routes.getLength());
-		SimpleTestRoute == *routes[0];
+		SimpleTestRoute == **routes.begin();
+		delete* routes.begin();
 	} ENDM
 
 		TEST(Agent pathfinder, complex) {
 		AgentPathfinder pathfinder(complexTestGraph, 3);
 
-		Array<Route*> routes = pathfinder.getRoutes(complexNodeStart, complexNodeEnd, Time(0, 0));
+		SortedList<Route*> routes = pathfinder.getRoutes(complexNodeStart, complexNodeEnd, Time(0, 0));
 
 		if (routes.getLength() != 3) {
 			FAIL();
 		}
 		else {
-			ComplexTestRoute1 == *routes[0];
-			ComplexTestRoute2 == *routes[1];
-			ComplexTestRoute3 == *routes[2];
+			SortedList<Route*>::Iterator iter = routes.begin();
+			ComplexTestRoute1 == **iter;
+			delete* iter;
+			ComplexTestRoute2 == **(iter++);
+			delete* iter;
+			ComplexTestRoute3 == **(iter++);
+			delete* iter;
 		}
-	} ENDM
-
-		//IDE KERULNEK TESZT ESETEK TRUKKOS HELYZETEKKEL
-		TEST(comprehensive, something) {
-
 	} ENDM
 
 		return 0;

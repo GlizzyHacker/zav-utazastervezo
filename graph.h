@@ -36,12 +36,12 @@ protected:
 
 	int weight;
 	
-	Time startTime;
+	Array<Time> startTimes;
 	
 	char* name;
 
 public:
-	Edge(Node* from, Node* to, int weight, Time startTime, const char* name);
+	Edge(Node* from, Node* to, int weight, Array<Time> startTimes, const char* name);
 
 	Edge();
 	
@@ -51,7 +51,7 @@ public:
 
 	size_t getWeight() const;
 	
-	Time getStartTime() const;
+	Time getFirstStartTimeAfter(Time time) const;
 
 	Node* getToNode() const;
 
@@ -74,14 +74,17 @@ public:
 };
 
 class Route {
+	Time startTime;
 protected:
 	Array<Edge*> edges;
 public:
-	Route(Array<Edge*> edges);
+	Route(Array<Edge*> edges, Time startTime);
 
 	Array<Edge*> getEdges() const;
+
+	Time getStartTime() const;
 	
-	size_t getTotalWeight(Time startTime) const;
+	size_t getTotalWeight() const;
 };
 
 #endif

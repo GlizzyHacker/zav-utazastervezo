@@ -1,5 +1,5 @@
 #include "graph.h"
-#include "array.hpp"
+#include "sorted_list.hpp";
 
 #ifndef PATHFINDER
 #define PATHFINDER
@@ -9,8 +9,8 @@ protected:
 	size_t numRoutes;
 public:
 	Pathfinder(Graph graph, size_t numRoutes = 3);
-
-	virtual Array<Route*> getRoutes(const Node& from,const Node& to, Time starTime) = 0;
+	//HIVO KEZELI A MEMORIAT
+	virtual SortedList<Route*> getRoutes(const Node& from,const Node& to, Time starTime) = 0;
 
 	virtual ~Pathfinder();
 };
