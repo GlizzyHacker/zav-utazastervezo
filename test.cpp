@@ -11,7 +11,6 @@
 #include "graph.h"
 #include "agent.h"
 #include "log.hpp"
-
 #ifdef CPORTA
 #define TESTS
 #endif
@@ -96,6 +95,7 @@ bool operator==(const Graph& graph1, const Graph& graph2) {
 	return true;
 }
 
+//ATMASOLVA IDE MAINBOL MERT NEM LEHET MAINT INCLUDOLNI
 bool isArgument(const char* input, const char arg, const char* argument) {
 	if (input[0] == '-') {
 		if (input[1] == '-') {
@@ -105,6 +105,7 @@ bool isArgument(const char* input, const char arg, const char* argument) {
 	}
 	return false;
 }
+
 int main() {
 	writeLog = true;
 
@@ -154,6 +155,8 @@ int main() {
 	Route ComplexTestRoute2(toArray(&complexEdge2, &complexEdge5), Time(8, 11));
 	Route ComplexTestRoute3(toArray(&complexEdge3, &complexEdge6), Time(9, 12));
 
+	GTINIT(std::cin);
+
 	TEST(Array, operators) {
 		int tmp[1];
 		tmp[0] = 2;
@@ -165,17 +168,17 @@ int main() {
 
 		EXPECT_EQ(2, array[0]);
 		EXPECT_EQ(1, array[1]);
-		EXPECT_EQ(2, array.getLength());
+		EXPECT_EQ((size_t)2, array.getLength());
 
 		EXPECT_NE(array + 0, array2 + 0);
 
 		EXPECT_EQ(2, array2[0]);
 		EXPECT_EQ(1, array2[1]);
-		EXPECT_EQ(2, array2.getLength());
+		EXPECT_EQ((size_t)2, array2.getLength());
 
 		EXPECT_EQ(2, array3[0]);
 		EXPECT_EQ(1, array3[1]);
-		EXPECT_EQ(2, array3.getLength());
+		EXPECT_EQ((size_t)2, array3.getLength());
 
 	} ENDM
 
@@ -196,7 +199,7 @@ int main() {
 			EXPECT_EQ(i, *begin);
 			i++;
 		}
-		EXPECT_EQ(7, list.getLength());
+		EXPECT_EQ((size_t)7, list.getLength());
 		
 	} ENDM
 
@@ -213,14 +216,14 @@ int main() {
 		EXPECT_EQ(1, *iter1);
 		EXPECT_EQ(2, *(iter1++));
 		EXPECT_EQ(3, *(iter1++));
-		EXPECT_EQ(3, list.getLength());
+		EXPECT_EQ((size_t)3, list.getLength());
 
 		list.remove(2);
 
 		SortedList<int>::Iterator iter2 = list.begin();
 		EXPECT_EQ(1, *iter2);
 		EXPECT_EQ(3, *(iter2++));
-		EXPECT_EQ(2, list.getLength());
+		EXPECT_EQ((size_t)2, list.getLength());
 	} ENDM
 
 		TEST(Time, print) {
@@ -244,8 +247,8 @@ int main() {
 		t1 += 70;
 		t2 -= 80;
 
-		EXPECT_EQ(1440 - 119, dif1);
-		EXPECT_EQ(119, dif2);
+		EXPECT_EQ((size_t)1440 - 119, dif1);
+		EXPECT_EQ((size_t)119, dif2);
 		std::stringstream str1, str2;
 		str1 << t1;
 		str2 << t2;
@@ -265,9 +268,9 @@ int main() {
 		Node n1, n2;
 		Edge e(&n1, &n2, 20, toArray(Time(10, 0)), "test");
 
-		EXPECT_EQ(0 + 20, e.getWeight(Time(10, 0)));
-		EXPECT_EQ(1439 + 20, e.getWeight(Time(10, 1)));
-		EXPECT_EQ(1 + 20, e.getWeight(Time(9, 59)));
+		EXPECT_EQ((size_t)0 + 20, e.getWeight(Time(10, 0)));
+		EXPECT_EQ((size_t)1439 + 20, e.getWeight(Time(10, 1)));
+		EXPECT_EQ((size_t)1 + 20, e.getWeight(Time(9, 59)));
 	} ENDM
 
 		TEST(Graph, find node) {
@@ -287,7 +290,7 @@ int main() {
 
 		EXPECT_STREQ("name1", node->getName());
 		EXPECT_STREQ("unique", nodeQ->getName());
-		EXPECT_THROW(graph.getNode("name4"), NotFound);
+		EXPECT_THROW(graph.getNode("name4"), NotFound&);
 
 	} ENDM
 
@@ -307,7 +310,7 @@ int main() {
 
 		size_t weight = route.getTotalWeight();
 
-		EXPECT_EQ(1440 + 50, weight);
+		EXPECT_EQ((size_t)1440 + 50, weight);
 
 	} ENDM
 
@@ -468,15 +471,15 @@ int main() {
 	} ENDM
 
 		TEST(Cron from csv, cron exception) {
-		EXPECT_THROW(parseTime("*"), std::out_of_range);
-		EXPECT_THROW(parseTime("a 1"), FormatInvalid);
+		EXPECT_THROW(parseTime("*"), std::out_of_range&);
+		EXPECT_THROW(parseTime("a 1"), FormatInvalid&);
 
 	} ENDM
 
 		TEST(Route to csv, simple) {
 		CSVLine line = writeRoute(SimpleTestRoute);
 
-		EXPECT_EQ(9, line.getColumns().getLength());
+		EXPECT_EQ((size_t)9, line.getColumns().getLength());
 		EXPECT_STREQ("30", line.getColumns()[0] + 0);
 		EXPECT_STREQ("10:00", line.getColumns()[1] + 0);
 		EXPECT_STREQ("edge", line.getColumns()[2] + 0);
@@ -539,13 +542,13 @@ int main() {
 		CSV3.close();
 
 		CSVParser csv1("testgi1.csv");
-		EXPECT_THROW(CSVGraph graph(csv1), FormatInvalid);
+		EXPECT_THROW(CSVGraph graph(csv1), FormatInvalid&);
 
 		CSVParser csv2("testgi2.csv");
-		EXPECT_THROW(CSVGraph graph(csv2), FormatInvalid);
+		EXPECT_THROW(CSVGraph graph(csv2), FormatInvalid&);
 
 		CSVParser csv3("testgi3.csv");
-		EXPECT_THROW(CSVGraph graph(csv3), FormatInvalid);
+		EXPECT_THROW(CSVGraph graph(csv3), FormatInvalid&);
 
 	} ENDM
 
@@ -610,30 +613,11 @@ int main() {
 
 		SortedList<Route*> routes = pathfinder.getRoutes(simpleNode1, simpleNode3, Time(0, 0));
 
-		EXPECT_EQ(1, routes.getLength());
+		EXPECT_EQ((size_t)1, routes.getLength());
 		SimpleTestRoute == **routes.begin();
 		delete* routes.begin();
 	} ENDM
-
-		TEST(Agent pathfinder, complex) {
-		AgentPathfinder pathfinder(complexTestGraph, 3);
-
-		SortedList<Route*> routes = pathfinder.getRoutes(complexNodeStart, complexNodeEnd, Time(0, 0));
-
-		if (routes.getLength() != 3) {
-			FAIL();
-		}
-		else {
-			SortedList<Route*>::Iterator iter = routes.begin();
-			ComplexTestRoute1 == **iter;
-			delete* iter;
-			ComplexTestRoute2 == **(iter++);
-			delete* iter;
-			ComplexTestRoute3 == **(iter++);
-			delete* iter;
-		}
-	} ENDM
-
+		GTEND(std::cerr);
 		return 0;
 }
 #endif

@@ -40,3 +40,6 @@
 /cmake-build-debug-cygwin
 /cmake-build-debug
 /zav/x64/Release
+/html
+/latex
+/cmake-build-debug-mingw

@@ -1,5 +1,10 @@
-
+#if __cpp_lib_filesystem >= 201703L
 #include <filesystem>
+namespace fs = std::filesystem;
+#else
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#endif
 #include <cstring>
 #include <exception>
 #include <stdlib.h>
@@ -13,16 +18,29 @@
 #include "time.h"
 #include "array.hpp"
 #include "log.hpp"
-
 #ifndef CPORTA
 #ifndef TESTS
 
-namespace fs = std::filesystem;
-
 class MissingParameter : public std::exception {
-	virtual const char* what() const throw()
-	{
-		return "Fontos parameter hianyzik";
+	char* whatStr;
+public:
+	MissingParameter(const char* obj) {
+		std::stringstream sstream;
+		if (obj == NULL) {
+			obj = "";
+		}
+		sstream << "Kotelezo parameter \"" << obj << "\" hianyzik";
+		whatStr = new char[sstream.str().length() + 1];
+		whatStr[sstream.str().length()] = 0;
+		strcpy(whatStr, sstream.str().c_str());
+	}
+
+	const char* what() const throw() {
+		return whatStr;
+	}
+
+	~MissingParameter() {
+		delete[] whatStr;
 	}
 };
 
@@ -97,19 +115,24 @@ int main(int argc, char* argv[]) {
 	}
 
 	//ADATOK ATALAKITASA
-	fs::path schedulePath(fs::current_path()/"schedules");
+	fs::path schedulePath(fs::current_path() / "schedules");
 	if (scheduleString != NULL) {
 		schedulePath = fs::path(scheduleString);
 	}
 
 	size_t numResult = 3;
 	if (numResultString != NULL) {
-		numResult = (size_t) atoi(numResultString);
+		numResult = (size_t)atoi(numResultString);
 	}
 
 	Time time;
 	if (!timeString.empty()) {
-		time = parseTime(timeString.c_str())[0];
+		try {
+			time = parseTime(timeString.c_str())[0];
+		}
+		catch (std::exception e) {
+			std::cout << "Ido nem jo formatumban van megadva" << std::endl;
+		}
 	}
 
 	if (isVerbose) {
@@ -118,12 +141,13 @@ int main(int argc, char* argv[]) {
 
 	//MENETREND FAJLOK BEOLVASASA
 	Array<Array<char>> files;
-	for (fs::directory_entry entry : fs::directory_iterator( schedulePath)) {
+	for (fs::directory_entry entry : fs::directory_iterator(schedulePath)) {
 		std::string str = entry.path().string();
-		files += Array<char>(str.length()+1, str.c_str());
+		files += Array<char>(str.length() + 1, str.c_str());
 	}
 	if (files.getLength() == 0) {
-		throw MissingParameter();
+		std::cout << MissingParameter("schedule").what() << std::endl;
+		return 1;
 	}
 
 	std::cout << "Menetrend betoltese " << files.getLength() << " fajlbol" << std::endl;
@@ -132,101 +156,122 @@ int main(int argc, char* argv[]) {
 	CSVParser csvIn(files[0] + 0);
 	for (size_t i = 1; i < files.getLength(); i++) {
 		try {
-			CSVParser* parser = new CSVParser(files[i]+0);
+			CSVParser* parser = new CSVParser(files[i] + 0);
 			csvIn += *parser;
 		}
 		catch (const FormatInvalid& e) {
-			std::cout << "Error reading "<< i <<". file:" << files[i]+0<<":"<< e.what() << std::endl;
+			std::cout << "Hiba a " << i << ". fajl olvasasa kozben:" << files[i] + 0 << ":" << e.what() << std::endl;
 		}
 	}
 
 	//GRAF LETREHOZASA
-	CSVGraph csvGraph(csvIn);
-	Graph* graph = &csvGraph;
+	Graph* graph;
+	try
+	{
+		CSVGraph csvGraph(csvIn);
+		graph = &csvGraph;
 
-	//GRAF ADATOKAT CSAK A GRAF LETREHOZASA UTAN LEHET ATALAKITANI
-	test:
-	if (startString.empty()) {
-		if (!isForced) {
-			std::cout << "Kezdo allomas:";
-			std::getline(std::cin, startString);
-		}
+		//GRAF ADATOKAT CSAK A GRAF LETREHOZASA UTAN LEHET ATALAKITANI
 		if (startString.empty()) {
-			throw MissingParameter();
-		}
-	}
-	if (destinationString.empty()) {
-		if (!isForced) {
-			std::cout << "Vegallomas:";
-			std::getline(std::cin, destinationString);
+			if (!isForced) {
+				std::cout << "Kezdo allomas:";
+				std::getline(std::cin, startString);
+			}
+			if (startString.empty()) {
+				std::cout << MissingParameter("start").what() << std::endl;
+				return 1;
+			}
 		}
 		if (destinationString.empty()) {
-			throw MissingParameter();
-		}
-	}
-	Node* start = graph->getNode(startString.c_str());
-	Node* destination = graph->getNode(destinationString.c_str());
-	std::cout << start->getName() << " --> " << destination->getName() << std::endl;
-
-	//UTVONAL KERESES
-	std::cout << "Utvonalak keresese" << std::endl;
-	AgentPathfinder agentPathfinder(*graph, numResult);
-	Pathfinder* pathfinder = &agentPathfinder;
-	SortedList<Route*> routes = pathfinder->getRoutes(*start, *destination, time);
-
-	//EREDMENY KIIRASA
-	if (!isQuiet) {
-		size_t i = 1;
-		for (SortedList<Route*>::Iterator routeIter = routes.begin(), routeEnd = routes.end(); routeIter != routeEnd; routeIter++) {
-			//Kertnel tobbet nem mutat
-			if (i >= numResult) {
-				break;
+			if (!isForced) {
+				std::cout << "Vegallomas:";
+				std::getline(std::cin, destinationString);
 			}
-			Array<Edge*> edges = (*routeIter)->getEdges();
-			Edge* nextEdge = NULL;
-			Edge* firstSameEdge = NULL;
-			int sameEdgeCount = 1;
-			Time arrivalTime = (*routeIter)->getEdges()[0]->getFirstStartTimeAfter((*routeIter)->getStartTime()); 
-			Time departureTime;
+			if (destinationString.empty()) {
+				std::cout << MissingParameter("destination").what() << std::endl;
+				return 1;
+			}
+		}
 
-			std::cout << i << ". utvonal " << (*routeIter)->getTotalWeight() - (arrivalTime - time) << " perc" << std::endl;
-			std::cout << start->getName() << " [" << arrivalTime << "]" << std::endl;
-			for (size_t j = 0; j < edges.getLength(); j++)
-			{
-				if (firstSameEdge == NULL) {
-					departureTime = arrivalTime;
-					firstSameEdge = edges[j];
+		Node* start;
+		Node* destination;
+		try {
+			start = graph->getNode(startString.c_str());
+			destination = graph->getNode(destinationString.c_str());
+		}
+		catch (const NotFound& e) {
+			std::cout << "Hiba a kezdo/veg-allomas megallapitasa kozben:" << e.what() << std::endl;
+			return 1;
+		}
+		std::cout << start->getName() << " --> " << destination->getName() << std::endl;
+
+		//UTVONAL KERESES
+		std::cout << "Utvonalak keresese" << std::endl;
+		AgentPathfinder agentPathfinder(*graph, numResult);
+		Pathfinder* pathfinder = &agentPathfinder;
+		SortedList<Route*> routes = pathfinder->getRoutes(*start, *destination, time);
+
+		//EREDMENY KIIRASA
+		if (!isQuiet) {
+			size_t i = 1;
+			for (SortedList<Route*>::Iterator routeIter = routes.begin(), routeEnd = routes.end(); routeIter != routeEnd; routeIter++) {
+				//Kertnel tobbet nem mutat
+				if (i > numResult) {
+					break;
 				}
-				arrivalTime += edges[j]->getWeight(arrivalTime);
-				nextEdge = edges.getLength() == j + 1 ? NULL : edges[j + 1];
-				int wait = nextEdge ? nextEdge->getFirstStartTimeAfter(arrivalTime) - arrivalTime : 0;
-				if (nextEdge && strcmp(nextEdge->getName(), edges[j]->getName()) == 0 && wait == 0) {
-					sameEdgeCount++;
-				}
-				else {
-					std::cout << "| " << edges[j]->getName() << std::endl << "| indulas:" << firstSameEdge->getFirstStartTimeAfter(departureTime) << " " << edges[j]->getWeight(firstSameEdge->getFirstStartTimeAfter(arrivalTime)) << " perc " << sameEdgeCount << " megallo" << std::endl << edges[j]->getToNode()->getName() << " [" << arrivalTime << "]";
-					if (nextEdge) {
-						std::cout << " varjon " << wait << " percet";
+				Array<Edge*> edges = (*routeIter)->getEdges();
+				Edge* nextEdge = NULL;
+				Edge* firstSameEdge = NULL;
+				int sameEdgeCount = 1;
+				Time arrivalTime = (*routeIter)->getEdges()[0]->getFirstStartTimeAfter((*routeIter)->getStartTime());
+				Time departureTime;
+
+				std::cout << i << ". utvonal " << (*routeIter)->getTotalWeight() - (arrivalTime - time) << " perc" << std::endl;
+				std::cout << start->getName() << " [" << arrivalTime << "]" << std::endl;
+				for (size_t j = 0; j < edges.getLength(); j++)
+				{
+					if (firstSameEdge == NULL) {
+						departureTime = arrivalTime;
+						firstSameEdge = edges[j];
 					}
-					std::cout << std::endl;
-					sameEdgeCount = 1;
-					firstSameEdge = NULL;
+					arrivalTime += edges[j]->getWeight(arrivalTime);
+					nextEdge = edges.getLength() == j + 1 ? NULL : edges[j + 1];
+					int wait = nextEdge ? nextEdge->getFirstStartTimeAfter(arrivalTime) - arrivalTime : 0;
+					if (nextEdge && strcmp(nextEdge->getName(), edges[j]->getName()) == 0 && wait == 0) {
+						sameEdgeCount++;
+					}
+					else {
+						std::cout << "| " << edges[j]->getName() << std::endl << "| indulas:" << firstSameEdge->getFirstStartTimeAfter(departureTime) << " " << edges[j]->getWeight(firstSameEdge->getFirstStartTimeAfter(arrivalTime)) << " perc " << sameEdgeCount << " megallo" << std::endl << edges[j]->getToNode()->getName() << " [" << arrivalTime << "]";
+						if (nextEdge) {
+							std::cout << " varjon " << wait << " percet";
+						}
+						std::cout << std::endl;
+						sameEdgeCount = 1;
+						firstSameEdge = NULL;
+					}
 				}
+				i++;
 			}
-			i++;
 		}
-	}
 
-	//FAJLBA IRAS
-	if (returnString != NULL) {
-		CSVParser csvOut(returnString);
+		//FAJLBA IRAS
+		if (returnString != NULL) {
+			CSVParser csvOut(returnString);
+			for (SortedList<Route*>::Iterator routeIter = routes.begin(), routeEnd = routes.end(); routeIter != routeEnd; routeIter++) {
+				csvOut.write(writeRoute(**routeIter));
+			}
+		}
+
+		//FELSZABADITAS
 		for (SortedList<Route*>::Iterator routeIter = routes.begin(), routeEnd = routes.end(); routeIter != routeEnd; routeIter++) {
-			csvOut.write(writeRoute(**routeIter));
+			delete* routeIter;
 		}
 	}
-	destinationString.clear();
-	startString.clear();
-	goto test;
+	catch (const FormatInvalid& e)
+	{
+		std::cout << "Hiba a graf keszitese kozben:" << e.what() << std::endl;
+		return 1;
+	}
 }
 #endif
 #endif

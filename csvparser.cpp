@@ -6,31 +6,29 @@
 #include "memtrace.h"
 #include "log.hpp"
 
-FormatInvalid::FormatInvalid(const char fileStr[], size_t line, size_t character) : file(NULL), line(line), character(character) {
-	if (fileStr == NULL) {
-		return;
-	}
-	file = new char[strlen(fileStr) + 1];
-	strcpy(file, fileStr);
-	file[strlen(fileStr)] = 0;
-}
+FormatInvalid::FormatInvalid(const char file[], size_t line, size_t character) {
 
-const char* FormatInvalid::what() const throw()
-{
 	std::stringstream sstream;
-	sstream << "Helytelen formáutm fájl:" << file << " sor:" << line << "character: " << character;
-	return "Helytelen formátum";
-}
-
-FormatInvalid::~FormatInvalid(){
-	if (file != NULL) {
-		delete[] file;
+	if (file == NULL) {
+		file = "";
 	}
+	sstream << "Helytelen formatumu fajl:" << file << " sor:" << line << "character: " << character;
+	whatStr = new char[sstream.str().length()+1];
+	whatStr[sstream.str().length()] = 0;
+	strcpy(whatStr, sstream.str().c_str());
 }
 
-Array<char> CSVLine::trim(const Array<char>& charArray) {
-	char* begin = charArray + 0;
-	char* end = charArray + (charArray.getLength() - 1);
+const char* FormatInvalid::what() const throw(){
+	return whatStr;
+}
+
+FormatInvalid::~FormatInvalid() {
+	delete[] whatStr;
+}
+
+Array<char> CSVLine::trim(const Array<char>& chars) {
+	const char* begin = chars + 0;
+	const char* end = chars + (chars.getLength() - 1);
 	while (begin != end && (isspace(*begin) || *begin == '"')) {
 		begin++;
 	}
@@ -39,25 +37,21 @@ Array<char> CSVLine::trim(const Array<char>& charArray) {
 	}
 
 	return Array<char>((size_t)(end - begin + 1), begin);
-
 }
 
-//HOZZAAD EGY OSZLOPOT A TOMB VEGERE AZT FELTETELEZI VAN HELY
 void CSVLine::createColumn(const char* start, size_t len) {
 	Array<char> newArr = trim(Array<char>(len, start));
 	newArr += 0;
 	columns += newArr;
 }
 
-CSVLine::CSVLine() {}
-
+//Allapotgep
 enum SeparatorState {
 	base,
 	inQuote,
 	end
 };
 
-//Állapotgép
 const char* CSVLine::findNextSeparator(const char str[], char sep) {
 	SeparatorState state = base;
 	const char* ptr = str;
@@ -79,6 +73,11 @@ const char* CSVLine::findNextSeparator(const char str[], char sep) {
 	}
 	return state == end ?--ptr : NULL;
 }
+
+CSVLine::CSVLine() {}
+
+CSVLine::CSVLine(const CSVLine& other) : columns(other.columns) {}
+
 CSVLine::CSVLine(const char line[], char separator) {
 	if (line == NULL) {
 		return;
@@ -173,7 +172,7 @@ void CSVParser::openFile() {
 	file = std::fstream(path, std::ios::in | std::ios::out);
 
 	if (!file) {
-		//ha nem létezik a fájl létrehozza
+		//ha nem létezik a fajl letrehozza
 		file.open(path, std::ios::out);
 		file.close();
 		//ujraprobalkozas
@@ -192,10 +191,9 @@ CSVParser::CSVParser(const char* filePath) : next(NULL), beenOpened(false) {
 }
 
 CSVLine CSVParser::read() {
-	char* lineString = readLine();
+	const char* lineString = readLine();
 	CSVLine line(lineString);
 	delete[] lineString;
-	lines += line;
 	return line;
 }
 

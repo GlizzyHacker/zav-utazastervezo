@@ -31,7 +31,7 @@ AgentState Agent::step() {
 	l() << "Inspecting edge:" << ID(edges.last()) << edges.last()->getName() << ", ";
 	for (size_t i = 0; i < edges.getLength() - 1; i++)
 	{
-		//K�R
+		//KOR
 		if (edges[i]->getToNode() == head() || start == head()) {
 			return terminated;
 		}
@@ -60,7 +60,7 @@ const Node* Agent::head() const {
 AgentPathfinder::AgentPathfinder(Graph graph, size_t numResult) : Pathfinder(graph, numResult), agents(SortedList<Agent*, alwaysFirst<Agent*>>()) {}
 
 SortedList<Route*> AgentPathfinder::getRoutes(const Node& from, const Node& to, Time startTime) {
-	//HIB�T DOB HA FROM �S TO NINCS A GR�FBAN
+	//HIBAT DOB HA FROM ES TO NINCS A GRAFBAN
 	graph.getNode(from.getName());
 	graph.getNode(to.getName());
 

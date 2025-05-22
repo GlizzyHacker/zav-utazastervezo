@@ -6,11 +6,28 @@
 #ifndef LOGGER
 #define LOGGER
 
+//KIIRASOKHOZ SEGEDFUGGVENYEK
+
+/*!
+ * Ez a valtozo szabalyozza, hogy a l()-be irt uzenetek kiirodnak-e a standard kimenetre
+ */
 inline bool writeLog = false;
+
+/*!
+ * Ezzel a valtozoval meglehet adni egy masik streamet kiirasnak
+ */
 inline std::ostream& lstream = std::cout;
+
+/*!
+ * Ezt a valtozo nem hasznalando
+ * A nem kiirt uzeneteket ide irja es torli
+ */
 inline std::stringstream dispose;
 
-//KIIRÁSOKHOZ SEGÉDFÜGGVÉNYEK
+/*!
+ * Hibakereseshez hasznalt uzeneteket ide lehet irni
+ * @return egy stream ahova lehet irni
+ */
 inline std::ostream& l() {
 	if(!writeLog ){
 		dispose.clear();
@@ -19,7 +36,12 @@ inline std::ostream& l() {
 		return lstream;
 }
 
-//Egy pointerből csinál egy könnyeben olvasható azonosítót
+/*!
+ * Egy pointerbol csinal egy konnyebben olvashato azonositot
+ * @tparam T  a pointer tipusa
+ * @param ptr a pointer
+ * @return az azonosito
+ */
 template<typename T>
 std::string ID(T* ptr) {
 

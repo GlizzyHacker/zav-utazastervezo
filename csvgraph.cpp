@@ -81,7 +81,7 @@ CSVGraph::CSVGraph(CSVParser& csv) {
 					CSVEdge* edge = new CSVEdge(numCol1 - atoi(lastColumn1 + 0), newTimes, lastHeader + 0);
 					*lastNode += *edge;
 					*edge += *node;
-					l() << "--New edge:" << time << ID(edge) << edge->getName() << std::endl;
+					l() << "--New edge:" << ID(edge) << edge->getName() << std::endl;
 				}
 				lastNode = node;
 

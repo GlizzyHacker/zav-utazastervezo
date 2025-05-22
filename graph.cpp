@@ -1,8 +1,28 @@
 #include <cstring>
+#include <sstream>
 #include "graph.h"
 #include "mytime.h"
 
-Node::Node(Array<Edge*> edges,const char* newName) : edges(edges) {
+NotFound::NotFound(const char* obj) {
+	std::stringstream sstream;
+	if (obj == NULL) {
+		obj = "";
+	}
+	sstream << "Nem talalt:" << obj;
+	whatStr = new char[sstream.str().length() + 1];
+	whatStr[sstream.str().length()] = 0;
+	strcpy(whatStr, sstream.str().c_str());
+}
+
+const char* NotFound::what() const throw() {
+	return whatStr;
+}
+
+NotFound::~NotFound() {
+	delete[] whatStr;
+}
+
+Node::Node(Array<Edge*> edges, const char* newName) : edges(edges) {
 	name = new char[strlen(newName) + 1];
 	strcpy(name, newName);
 }
@@ -34,7 +54,7 @@ Node::~Node() {
 	delete[] name;
 }
 
-Edge::Edge(Node* from, Node* to, int weight, Array<Time> startTimes, const char* newName) : from(from), to(to), weight(weight), startTimes(startTimes){
+Edge::Edge(Node* from, Node* to, int weight, Array<Time> startTimes, const char* newName) : from(from), to(to), weight(weight), startTimes(startTimes) {
 	name = new char[strlen(newName) + 1];
 	strcpy(name, newName);
 }
@@ -61,7 +81,7 @@ size_t Edge::getWeight() const {
 }
 
 size_t Edge::getWeight(Time currentTime) const {
-	size_t bestWeight  = 0;
+	size_t bestWeight = 0;
 	for (size_t i = 0; i < startTimes.getLength(); i++)
 	{
 		if (bestWeight == 0 || bestWeight > (startTimes[i] - currentTime)) {
@@ -113,7 +133,7 @@ Node* Graph::getNode(const char* name, bool exactMatch) const {
 			return (nodes[i]);
 		}
 	}
-	throw NotFound();
+	throw NotFound(name);
 }
 
 Route::Route(Array<Edge*> edges, Time startTime) : startTime(startTime), edges(edges) {}
@@ -130,7 +150,7 @@ size_t Route::getTotalWeight() const {
 	Time time = Time(edges[0]->getFirstStartTimeAfter(startTime));
 	for (size_t i = 0; i < edges.getLength(); i++)
 	{
-		 time += edges[i]->getWeight(time);
+		time += edges[i]->getWeight(time);
 	}
 	return time - startTime;
 }

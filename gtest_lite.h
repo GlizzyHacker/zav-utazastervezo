@@ -277,7 +277,7 @@ public:
         ++sum;
     }
     /// Teszt vége
-    std::ostream& end(bool memchk = false) {
+    std::ostream& end(bool memchk) {
 #ifdef MEMTRACE
         if (memchk && ablocks != memtrace::allocated_blocks()) {
             status = false;
